@@ -300,42 +300,105 @@ You can enable or disable installed extensions based on your workflow needs.
 </Tabs>
 
 :::tip
-Goose can automatically detect and suggest the right extensions for your tasks as you chat. Learn more about this smart feature in the [Smart Extension](/docs/guides/smart-extension-recommendation) guide.
+Goose can automatically detect and suggest the right extensions for your tasks as you chat. To learn more, see [Automatically Enabled Extensions](#automatically-enabled-extensions).
 :::
 
-## Automatically enabled extensions
+## Automatically Enabled Extensions
 
-Goose automatically identifies and suggests relevant extensions based on your tasks and needs. When you prompt Goose to complete a task, Goose checks its enabled extensions and their tools to determine if it can fulfill the request. If not, it enables additional extensions as needed. You can also request specific extensions by name.
+The Smart Extension Recommendation system in Goose automatically identifies and suggests relevant extensions based on your tasks and needs. This section explains how to use this feature effectively and understand its capabilities and limitations.
 
-:::tip
-Any extensions enabled dynamically are only enabled for the current session. To keep extensions enabled between sessions, manually enable them.
+When you request a task, Goose checks its enabled extensions and their tools to determine if it can fulfill the request. If not, it suggests or enables additional extensions as needed. You can also request specific extensions by name.
+
+
+:::warning
+Any extensions enabled dynamically are only enabled for the current session. To keep extensions enabled between sessions, see [Enabling/Disabling Extensions](#enablingdisabling-extensions).
 :::
+
+### Automatic Detection
+
+Goose automatically detects when an extension is needed based on your task requirements. Here's an example of how Goose identifies and enables a needed extension during a conversation:
 
 <Tabs groupId="interface">
 <TabItem value="ui" label="Goose Desktop" default>
 
 #### Goose Prompt
 ```plaintext
-Find all orders with pending status from Snowflake
+Find all orders with pending status from our production database
 ```
 
 #### Goose Output
 
 ```plaintext
-I apologize, but I don't currently have access to any Snowflake-specific tools or extensions that would allow me to directly query Snowflake databases. Let me check if there are any relevant extensions available.
+I'll help you search for available extensions that might help us interact with PostgreSQL databases.
 
 🔍 Search Available Extensions
 └─ Output ▼
 
- I see that there is a Snowflake extension available. Let me enable it so I can help you query the Snowflake database.
+ I see there's a PostgreSQL extension available. Let me enable it so we can query your database.
 
 🔧 Manage Extensions
 └─ action           enable
-   extension_name   snowflake
+   extension_name   postgresql
 
-The extension 'Snowflake' has been installed successfully
+The extension 'postgresql' has been installed successfully
 
-Now that I have access to the Snowflake tools, I'll help you...
+Great! Now I can help you query the database...
+```
+
+</TabItem>
+<TabItem value="cli" label="Goose CLI">
+
+#### Goose Prompt
+```plaintext
+Find all orders with pending status from our production database
+```
+
+#### Goose Output
+
+```sh
+I apologize, but I notice that I don't currently have access to your database. Let me search if there are any database-related extensions available.
+─── search_available_extensions | platform ──────────────────────────
+
+I see that there is a "postgresql" extension available. Let me enable it so I can help you query your database.
+─── enable_extension | platform ──────────────────────────
+extension_name: postgresql
+
+
+■  Goose would like to enable the following extension, do you approve?
+// highlight-start
+| ● Yes, for this session 
+// highlight-end
+| ○ No
+```
+
+</TabItem>
+</Tabs>
+
+### Direct Request
+
+Goose responds to explicit requests for extensions, allowing users to manually enable specific tools they need. Here's an example of how Goose handles a direct request to enable an extension:
+
+<Tabs groupId="interface">
+<TabItem value="ui" label="Goose Desktop" default>
+
+#### Goose Prompt
+
+```plaintext
+Use PostgreSQL extension
+```
+
+#### Goose Output
+
+```plaintext
+I'll help enable the PostgreSQL extension for you.
+
+🔧 Manage Extensions
+└─ action           enable
+   extension_name   postgresql
+
+The extension 'postgresql' has been installed successfully
+
+The PostgreSQL extension is now ready to use. What would you like to do with it?
 ```
 
 </TabItem>
@@ -343,16 +406,16 @@ Now that I have access to the Snowflake tools, I'll help you...
 
 #### Goose Prompt
 
-```plaintext
-Find all orders with pending status from Snowflake
+```sh
+Use the PostgreSQL extension
 ```
 
 #### Goose Output
 
 ```sh
-I'll help enable the Snowflake extension for you.
+I'll help enable the PostgreSQL extension for you.
 ─── enable_extension | platform ──────────────────────────
-extension_name: snowflake
+extension_name: postgresql
 
 
 ■  Goose would like to enable the following extension, do you approve?
