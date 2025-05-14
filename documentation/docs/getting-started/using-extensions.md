@@ -303,6 +303,68 @@ You can enable or disable installed extensions based on your workflow needs.
 Goose can automatically detect and suggest the right extensions for your tasks as you chat. Learn more about this smart feature in the [Smart Extension](/docs/guides/smart-extension-recommendation) guide.
 :::
 
+## Automatically enabled extensions
+
+Goose automatically identifies and suggests relevant extensions based on your tasks and needs. When you prompt Goose to complete a task, Goose checks its enabled extensions and their tools to determine if it can fulfill the request. If not, it enables additional extensions as needed. You can also request specific extensions by name.
+
+:::tip
+Any extensions enabled dynamically are only enabled for the current session. To keep extensions enabled between sessions, manually enable them.
+:::
+
+<Tabs groupId="interface">
+<TabItem value="ui" label="Goose Desktop" default>
+
+#### Goose Prompt
+```plaintext
+Find all orders with pending status from Snowflake
+```
+
+#### Goose Output
+
+```plaintext
+I apologize, but I don't currently have access to any Snowflake-specific tools or extensions that would allow me to directly query Snowflake databases. Let me check if there are any relevant extensions available.
+
+🔍 Search Available Extensions
+└─ Output ▼
+
+ I see that there is a Snowflake extension available. Let me enable it so I can help you query the Snowflake database.
+
+🔧 Manage Extensions
+└─ action           enable
+   extension_name   snowflake
+
+The extension 'Snowflake' has been installed successfully
+
+Now that I have access to the Snowflake tools, I'll help you...
+```
+
+</TabItem>
+<TabItem value="cli" label="Goose CLI">
+
+#### Goose Prompt
+
+```plaintext
+Find all orders with pending status from Snowflake
+```
+
+#### Goose Output
+
+```sh
+I'll help enable the Snowflake extension for you.
+─── enable_extension | platform ──────────────────────────
+extension_name: snowflake
+
+
+■  Goose would like to enable the following extension, do you approve?
+// highlight-start
+| ● Yes, for this session 
+// highlight-end
+| ○ No
+```
+
+</TabItem>
+</Tabs>
+
 ## Removing Extensions
 
 You can remove installed extensions. 
