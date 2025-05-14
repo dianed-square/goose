@@ -299,10 +299,6 @@ You can enable or disable installed extensions based on your workflow needs.
   </TabItem>
 </Tabs>
 
-:::tip
-Goose can automatically detect and suggest the right extensions for your tasks as you chat. To learn more, see [Automatically Enabled Extensions](#automatically-enabled-extensions).
-:::
-
 ## Automatically Enabled Extensions
 
 The Smart Extension Recommendation system in Goose automatically identifies and suggests relevant extensions based on your tasks and needs. This section explains how to use this feature effectively and understand its capabilities and limitations.
