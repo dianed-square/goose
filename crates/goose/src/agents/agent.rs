@@ -5,11 +5,13 @@ use std::sync::Arc;
 
 use anyhow::{anyhow, Result};
 use futures::stream::BoxStream;
-use futures::{FutureExt, Stream, TryStreamExt};
-use futures_util::stream;
-use futures_util::stream::StreamExt;
+use futures::{stream, FutureExt, Stream, StreamExt, TryStreamExt};
 use mcp_core::protocol::JsonRpcMessage;
 
+use crate::agents::final_output_tool::{FINAL_OUTPUT_CONTINUATION_MESSAGE, FINAL_OUTPUT_TOOL_NAME};
+use crate::agents::sub_recipe_execution_tool::sub_recipe_execute_task_tool::{
+    self, SUB_RECIPE_EXECUTE_TASK_TOOL_NAME,
+};
 use crate::agents::sub_recipe_manager::SubRecipeManager;
 use crate::config::{Config, ExtensionConfigManager, PermissionManager};
 use crate::message::Message;
@@ -17,7 +19,7 @@ use crate::permission::permission_judge::check_tool_permissions;
 use crate::permission::PermissionConfirmation;
 use crate::providers::base::Provider;
 use crate::providers::errors::ProviderError;
-use crate::recipe::{Author, Recipe, Settings, SubRecipe};
+use crate::recipe::{Author, Recipe, Response, Settings, SubRecipe};
 use crate::scheduler_trait::SchedulerTrait;
 use crate::tool_monitor::{ToolCall, ToolMonitor};
 use regex::Regex;
@@ -47,17 +49,21 @@ use mcp_core::{
 
 use crate::agents::subagent_tools::SUBAGENT_RUN_TASK_TOOL_NAME;
 
+use super::final_output_tool::FinalOutputTool;
 use super::platform_tools;
 use super::router_tools;
 use super::subagent_manager::SubAgentManager;
 use super::subagent_tools;
 use super::tool_execution::{ToolCallResult, CHAT_MODE_TOOL_SKIPPED_RESPONSE, DECLINED_RESPONSE};
 
+const DEFAULT_MAX_TURNS: u32 = 1000;
+
 /// The main goose Agent
 pub struct Agent {
     pub(super) provider: Mutex<Option<Arc<dyn Provider>>>,
     pub(super) extension_manager: RwLock<ExtensionManager>,
     pub(super) sub_recipe_manager: Mutex<SubRecipeManager>,
+    pub(super) final_output_tool: Mutex<Option<FinalOutputTool>>,
     pub(super) frontend_tools: Mutex<HashMap<String, FrontendTool>>,
     pub(super) frontend_instructions: Mutex<Option<String>>,
     pub(super) prompt_manager: Mutex<PromptManager>,
@@ -131,6 +137,7 @@ impl Agent {
             provider: Mutex::new(None),
             extension_manager: RwLock::new(ExtensionManager::new()),
             sub_recipe_manager: Mutex::new(SubRecipeManager::new()),
+            final_output_tool: Mutex::new(None),
             frontend_tools: Mutex::new(HashMap::new()),
             frontend_instructions: Mutex::new(None),
             prompt_manager: Mutex::new(PromptManager::new()),
@@ -205,6 +212,14 @@ impl Agent {
         Ok(tools)
     }
 
+    pub async fn add_final_output_tool(&self, response: Response) {
+        let mut final_output_tool = self.final_output_tool.lock().await;
+        let created_final_output_tool = FinalOutputTool::new(response);
+        let final_output_system_prompt = created_final_output_tool.system_prompt();
+        *final_output_tool = Some(created_final_output_tool);
+        self.extend_system_prompt(final_output_system_prompt).await;
+    }
+
     pub async fn add_sub_recipes(&self, sub_recipes: Vec<SubRecipe>) {
         let mut sub_recipe_manager = self.sub_recipe_manager.lock().await;
         sub_recipe_manager.add_sub_recipe_tools(sub_recipes);
@@ -258,13 +273,28 @@ impl Agent {
             return (request_id, Ok(ToolCallResult::from(result)));
         }
 
+        if tool_call.name == FINAL_OUTPUT_TOOL_NAME {
+            if let Some(final_output_tool) = self.final_output_tool.lock().await.as_mut() {
+                let result = final_output_tool.execute_tool_call(tool_call.clone()).await;
+                return (request_id, Ok(result));
+            } else {
+                return (
+                    request_id,
+                    Err(ToolError::ExecutionError(
+                        "Final output tool not defined".to_string(),
+                    )),
+                );
+            }
+        }
+
         let extension_manager = self.extension_manager.read().await;
         let sub_recipe_manager = self.sub_recipe_manager.lock().await;
-
         let result: ToolCallResult = if sub_recipe_manager.is_sub_recipe_tool(&tool_call.name) {
             sub_recipe_manager
                 .dispatch_sub_recipe_tool_call(&tool_call.name, tool_call.arguments.clone())
                 .await
+        } else if tool_call.name == SUB_RECIPE_EXECUTE_TASK_TOOL_NAME {
+            sub_recipe_execute_task_tool::run_tasks(tool_call.arguments.clone()).await
         } else if tool_call.name == PLATFORM_READ_RESOURCE_TOOL_NAME {
             // Check if the tool is read_resource and handle it separately
             ToolCallResult::from(
@@ -544,6 +574,12 @@ impl Agent {
         if extension_name.is_none() {
             let sub_recipe_manager = self.sub_recipe_manager.lock().await;
             prefixed_tools.extend(sub_recipe_manager.sub_recipe_tools.values().cloned());
+
+            if let Some(final_output_tool) = self.final_output_tool.lock().await.as_ref() {
+                prefixed_tools.push(final_output_tool.tool());
+            }
+            prefixed_tools
+                .push(sub_recipe_execute_task_tool::create_sub_recipe_execute_task_tool());
         }
 
         prefixed_tools
@@ -677,7 +713,23 @@ impl Agent {
 
         Ok(Box::pin(async_stream::try_stream! {
             let _ = reply_span.enter();
+            let mut turns_taken = 0u32;
+            let max_turns = session
+                .as_ref()
+                .and_then(|s| s.max_turns)
+                .unwrap_or_else(|| {
+                    config.get_param("GOOSE_MAX_TURNS").unwrap_or(DEFAULT_MAX_TURNS)
+                });
+
             loop {
+                turns_taken += 1;
+                if turns_taken > max_turns {
+                    yield AgentEvent::Message(Message::assistant().with_text(
+                        "I've reached the maximum number of actions I can do without user input. Would you like me to continue?"
+                    ));
+                    break;
+                }
+
                 // Check for MCP notifications from subagents
                 let mcp_notifications = self.get_mcp_notifications().await;
                 for notification in mcp_notifications {
@@ -766,6 +818,19 @@ impl Agent {
 
                         let num_tool_requests = frontend_requests.len() + remaining_requests.len();
                         if num_tool_requests == 0 {
+                            if let Some(final_output_tool) = self.final_output_tool.lock().await.as_ref() {
+                                if final_output_tool.final_output.is_none() {
+                                    tracing::warn!("Final output tool has not been called yet. Continuing agent loop.");
+                                    let message = Message::assistant().with_text(FINAL_OUTPUT_CONTINUATION_MESSAGE);
+                                    messages.push(message.clone());
+                                    yield AgentEvent::Message(message);
+                                    continue;
+                                } else {
+                                    let message = Message::assistant().with_text(final_output_tool.final_output.clone().unwrap());
+                                    messages.push(message.clone());
+                                    yield AgentEvent::Message(message);
+                                }
+                            }
                             break;
                         }
 
@@ -1258,5 +1323,47 @@ impl Agent {
             .expect("valid recipe");
 
         Ok(recipe)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::recipe::Response;
+
+    #[tokio::test]
+    async fn test_add_final_output_tool() -> Result<()> {
+        let agent = Agent::new();
+
+        let response = Response {
+            json_schema: Some(serde_json::json!({
+                "type": "object",
+                "properties": {
+                    "result": {"type": "string"}
+                }
+            })),
+        };
+
+        agent.add_final_output_tool(response).await;
+
+        let tools = agent.list_tools(None).await;
+        let final_output_tool = tools
+            .iter()
+            .find(|tool| tool.name == FINAL_OUTPUT_TOOL_NAME);
+
+        assert!(
+            final_output_tool.is_some(),
+            "Final output tool should be present after adding"
+        );
+
+        let prompt_manager = agent.prompt_manager.lock().await;
+        let system_prompt =
+            prompt_manager.build_system_prompt(vec![], None, serde_json::Value::Null, None, None);
+
+        let final_output_tool_ref = agent.final_output_tool.lock().await;
+        let final_output_tool_system_prompt =
+            final_output_tool_ref.as_ref().unwrap().system_prompt();
+        assert!(system_prompt.contains(&final_output_tool_system_prompt));
+        Ok(())
     }
 }
