@@ -1,53 +1,21 @@
-# ============================================================================
-# Recipe Documentation Automation Workflow
-# ============================================================================
+# Automatically updates the Recipe Reference Guide when recipe struct fields,
+# validation rules, or schema constraints change between releases.
 #
-# This workflow automatically updates the Recipe Reference Guide when recipe
-# schema or validation rules change between releases.
-#
-# WORKFLOW OVERVIEW:
-# 1. Triggered on new releases (or manually for testing)
-# 2. Extracts schema/validation from previous and current versions
-# 3. Detects changes using deterministic diff scripts
-# 4. Uses AI to synthesize human-readable change documentation
-# 5. Uses AI to update recipe-reference.md
-# 6. Creates a PR with the changes (or uploads artifacts in dry-run mode)
-#
-# TESTING STRATEGY:
-# - Use workflow_dispatch (manual trigger) with dry_run option
-# - Test on known version pairs before enabling release trigger
-# - Review artifacts before allowing PR creation
-# - Can test in forks without affecting upstream
-#
-# REUSABILITY:
-# This workflow is designed as a template for future documentation automations.
-# Key patterns to reuse:
-# - Version detection logic
-# - Artifact handling
-# - PR creation with standardized format
-# - Dry-run mode for safe testing
-#
-# ============================================================================
+# Triggers: Manual (for testing) or on release (production)
+# Testing: Use dry_run mode to review outputs without creating PRs
+# See: documentation/automation/recipe-schema-tracking/TESTING.md
 
 name: Update Recipe Documentation
 
-# ============================================================================
-# TRIGGERS
-# ============================================================================
 on:
-  # Manual trigger - for testing and one-off runs
-  # This allows you to:
-  # - Test the workflow without waiting for a release
-  # - Run on specific version pairs
-  # - Use dry-run mode to review outputs without creating PRs
-  workflow_dispatch:
+  workflow_dispatch:  # Manual trigger for testing
     inputs:
       old_version:
-        description: 'Previous version (e.g., v1.14.0). Leave empty to auto-detect from previous release.'
+        description: 'Previous version (e.g., v1.14.0). Leave empty to auto-detect.'
         required: false
         type: string
       new_version:
-        description: 'New version (e.g., v1.15.0). Leave empty to use current HEAD.'
+        description: 'New version (e.g., v1.15.0). Leave empty to use HEAD.'
         required: false
         type: string
       dry_run:
@@ -56,175 +24,92 @@ on:
         type: boolean
         default: true
       
-  # Automatic trigger - runs when a new release is published
-  # This is the production mode that will run automatically
-  # Disabled by default - uncomment when ready for production
+  # Uncomment to enable automatic triggering on releases
   # release:
   #   types: [published]
 
-# ============================================================================
-# PERMISSIONS
-# ============================================================================
-# Define minimal permissions needed for this workflow
 permissions:
-  contents: write      # Needed to checkout code and create branches
-  pull-requests: write # Needed to create PRs
-  issues: write        # Needed to comment on PRs (optional)
+  contents: write       # Create branches and commit files
+  pull-requests: write  # Create PRs
 
-# ============================================================================
-# JOBS
-# ============================================================================
 jobs:
   update-docs:
     name: Update Recipe Documentation
     runs-on: ubuntu-latest
     
     steps:
-      # ======================================================================
-      # STEP 1: Setup - Checkout code and install dependencies
-      # ======================================================================
-      
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          # Fetch all history and tags so we can compare versions
-          fetch-depth: 0
-          # Use a PAT if you need to trigger other workflows from the PR
-          # token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0  # Fetch all history and tags for version comparison
       
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
-        with:
-          components: rustfmt, clippy
       
-      - name: Install jq (for JSON processing)
+      - name: Install jq
         run: sudo apt-get update && sudo apt-get install -y jq
       
       - name: Install goose CLI
         run: |
-          # Install goose from the current repository
-          # This ensures we're using the same version we're documenting
           cargo install --path crates/goose-cli
           goose --version
-      
-      # ======================================================================
-      # STEP 2: Version Detection
-      # ======================================================================
-      # Determine which versions to compare
-      # Priority:
-      # 1. Manual inputs (if provided via workflow_dispatch)
-      # 2. Release event data (if triggered by release)
-      # 3. Auto-detect from git tags (fallback)
       
       - name: Determine versions to compare
         id: versions
         run: |
-          # Function to get the previous release tag
           get_previous_release() {
-            # Get the two most recent release tags
-            # Note: This uses GitHub releases, not just tags
-            # This ensures we only compare published releases
             gh release list --limit 2 --json tagName --jq '.[].tagName' | sed -n '2p'
           }
           
-          # Determine OLD_VERSION
           if [ -n "${{ github.event.inputs.old_version }}" ]; then
-            # Manual input provided
             OLD_VERSION="${{ github.event.inputs.old_version }}"
-            echo "Using manual old_version: $OLD_VERSION"
-          elif [ "${{ github.event_name }}" = "release" ]; then
-            # Release trigger - get previous release
-            OLD_VERSION=$(get_previous_release)
-            echo "Detected previous release: $OLD_VERSION"
           else
-            # Fallback - get previous release
             OLD_VERSION=$(get_previous_release)
-            echo "Auto-detected previous release: $OLD_VERSION"
           fi
           
-          # Determine NEW_VERSION
           if [ -n "${{ github.event.inputs.new_version }}" ]; then
-            # Manual input provided
             NEW_VERSION="${{ github.event.inputs.new_version }}"
-            echo "Using manual new_version: $NEW_VERSION"
           elif [ "${{ github.event_name }}" = "release" ]; then
-            # Release trigger - use the release tag
             NEW_VERSION="${{ github.event.release.tag_name }}"
-            echo "Using release tag: $NEW_VERSION"
           else
-            # Fallback - use current HEAD
-            NEW_VERSION="HEAD"
-            echo "Using current HEAD as new_version"
+            NEW_VERSION="HEAD"  # For testing unreleased changes
           fi
           
-          # Validate that we have both versions
           if [ -z "$OLD_VERSION" ] || [ -z "$NEW_VERSION" ]; then
             echo "Error: Could not determine versions to compare"
-            echo "OLD_VERSION: $OLD_VERSION"
-            echo "NEW_VERSION: $NEW_VERSION"
             exit 1
           fi
           
-          # Export for use in later steps
           echo "old_version=$OLD_VERSION" >> $GITHUB_OUTPUT
           echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
-          
-          # Also export to environment for script access
           echo "OLD_VERSION=$OLD_VERSION" >> $GITHUB_ENV
           echo "NEW_VERSION=$NEW_VERSION" >> $GITHUB_ENV
           
-          echo "✅ Version comparison: $OLD_VERSION → $NEW_VERSION"
+          echo "✅ Comparing $OLD_VERSION → $NEW_VERSION"
         env:
           GH_TOKEN: ${{ github.token }}
-      
-      # ======================================================================
-      # STEP 3: Run Automation Pipeline
-      # ======================================================================
-      # Execute the shell scripts to extract and compare schemas
       
       - name: Extract and compare schemas
         id: extract
         working-directory: documentation/automation/recipe-schema-tracking
         run: |
-          echo "Running extraction pipeline..."
+          ./scripts/run-pipeline.sh "$OLD_VERSION" "$NEW_VERSION" | tee output/pipeline.log
           
-          # Run the pipeline script
-          ./scripts/run-pipeline.sh "$OLD_VERSION" "$NEW_VERSION" | tee pipeline.log
-          
-          # Check if changes were detected
           HAS_CHANGES=$(jq -r '.has_changes' output/validation-changes.json)
           echo "has_changes=$HAS_CHANGES" >> $GITHUB_OUTPUT
           
           if [ "$HAS_CHANGES" = "false" ]; then
-            echo "✅ No changes detected between $OLD_VERSION and $NEW_VERSION"
-            echo "Documentation update not needed."
+            echo "✅ No changes detected"
           else
             echo "✅ Changes detected - proceeding with documentation update"
           fi
-      
-      # ======================================================================
-      # STEP 4: Update Documentation (if changes detected)
-      # ======================================================================
-      # Run the AI recipe to update recipe-reference.md
       
       - name: Update recipe-reference.md
         if: steps.extract.outputs.has_changes == 'true'
         working-directory: documentation/automation/recipe-schema-tracking
         env:
           RECIPE_REF_PATH: ${{ github.workspace }}/documentation/docs/guides/recipes/recipe-reference.md
-        run: |
-          echo "Updating recipe-reference.md..."
-          
-          # Run the update recipe
-          goose run --recipe recipes/update-recipe-reference.yaml
-          
-          echo "✅ Documentation update complete"
-      
-      # ======================================================================
-      # STEP 5: Upload Artifacts (for review)
-      # ======================================================================
-      # Always upload artifacts so they can be reviewed
-      # This is especially useful in dry-run mode
+        run: goose run --recipe recipes/update-recipe-reference.yaml
       
       - name: Upload automation outputs
         if: always()
@@ -237,29 +122,20 @@ jobs:
             documentation/automation/recipe-schema-tracking/output/*.log
           retention-days: 30
       
-      # ======================================================================
-      # STEP 6: Create Pull Request (if not dry-run)
-      # ======================================================================
-      # Create a PR with the documentation updates
-      # Skipped in dry-run mode or if no changes detected
-      
       - name: Create Pull Request
         if: |
           steps.extract.outputs.has_changes == 'true' && 
           (github.event.inputs.dry_run != 'true' || github.event_name == 'release')
         uses: peter-evans/create-pull-request@v6
         with:
-          # Branch naming
-          branch: docs/recipe-reference-${{ steps.versions.outputs.new_version }}
+          branch: docs/auto-recipe-reference-${{ steps.versions.outputs.new_version }}
           delete-branch: true
           
-          # Commit details
           commit-message: |
             docs: Update recipe reference for ${{ steps.versions.outputs.new_version }}
             
             Automated update based on schema changes between ${{ steps.versions.outputs.old_version }} and ${{ steps.versions.outputs.new_version }}.
           
-          # PR details
           title: "docs: Update Recipe Reference Guide for ${{ steps.versions.outputs.new_version }}"
           body: |
             ## 📚 Automated Documentation Update
@@ -268,17 +144,19 @@ jobs:
             
             ### 🤖 Automation Details
             
-            - **Workflow**: `update-recipe-docs.yml`
+            - **Workflow**: `docs-update-recipe-ref.yml`
             - **Triggered by**: ${{ github.event_name }}
             - **Previous version**: ${{ steps.versions.outputs.old_version }}
             - **New version**: ${{ steps.versions.outputs.new_version }}
             
             ### 📋 Changes Detected
             
-            See the attached artifacts for detailed change analysis:
+            Review the workflow artifacts for detailed change analysis:
             - `validation-changes.json` - Structured diff of changes
             - `validation-changes.md` - Human-readable change documentation
             - `update-summary.md` - Summary of documentation updates applied
+            
+            Download artifacts from the [workflow run](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}).
             
             ### ✅ Review Checklist
             
@@ -291,31 +169,15 @@ jobs:
             ### 🔗 Related
             
             - Release: ${{ github.event.release.html_url || 'N/A' }}
-            - Workflow run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
             
             ---
             
             *This PR was automatically generated by the Recipe Documentation Automation workflow.*
           
-          # PR metadata
           labels: |
             documentation
             automated
             recipe-reference
-          
-          # Reviewer assignment (optional - customize for your team)
-          # reviewers: |
-          #   docs-team
-          #   recipe-maintainers
-          
-          # Team assignment (optional)
-          # team-reviewers: |
-          #   documentation
-      
-      # ======================================================================
-      # STEP 7: Summary
-      # ======================================================================
-      # Provide a summary of what happened
       
       - name: Workflow summary
         if: always()
