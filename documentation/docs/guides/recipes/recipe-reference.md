@@ -9,7 +9,7 @@ import TabItem from '@theme/TabItem';
 
 # Recipe Reference Guide
 
-Recipes are reusable goose configurations that package up a specific setup so it can be easily shared and launched by others.
+Recipes are reusable goose configurations that package instructions and settings so the setup be easily shared and launched by others.
 
 Recipe files can be defined in:
 - `.yaml` (recommended) and `.yml` files
@@ -39,17 +39,17 @@ Every recipe follows this schema structure:
 
 | Field | Required | Default | Description |
 |-------|----------|---------|-------------|
-| `title` | ✅ | - | A short title describing the recipe (5-150 characters) |
+| `title` | ✅ | - | A short title describing the recipe (3-100 characters) |
 | `description` | ✅ | - | A detailed description of what the recipe does (10-500 characters) |
 | [`activities`](#activities) | - | `[]` | List of example prompts that appear as clickable bubbles in goose Desktop |
 | [`extensions`](#extensions) | - | `[]` | List of extension configurations |
 | `instructions` | ✅*  | - | Template instructions that can include parameter substitutions |
-| [`parameters`](#parameters) | ✅ | `[]` | List of parameter definitions for dynamic recipes |
+| [`parameters`](#parameters) | - | `[]` | List of parameter definitions for dynamic recipes |
 | `prompt` | ✅*  | - | A template prompt that can include parameter substitutions; required in headless (non-interactive) mode |
 | [`response`](#response) | - | - | Structured output schema for automation workflows |
 | [`retry`](#retry) | - | - | Configuration for automated retry logic with success validation |
 | [`settings`](#settings) | - | `{}` | Configuration for model provider, model name, and other settings |
-| [`subrecipes`](#subrecipes) | - | `[]` | List of subrecipes |
+| [`sub_recipes`](#subrecipes) | - | `[]` | List of subrecipes |
 | `version` | ✅ | "1.0.0" | The recipe format version |
 
 *At least one of `instructions` or `prompt` must be provided.
@@ -93,22 +93,14 @@ Activities support [parameter substitution](#parameters), allowing you to create
     description: "Review code with customizable focus areas"
     parameters:
       - key: language
-        input_type: select
+        input_type: string
         requirement: required
         description: "Programming language to review"
-        options:
-          - rust
-          - python
-          - javascript
       - key: focus
-        input_type: select
+        input_type: string
         requirement: optional
         default: "best practices"
         description: "Review focus area"
-        options:
-          - best practices
-          - security
-          - performance
 
     activities:
       - "message: Click an option below to start reviewing {{ language }} code with a focus on {{ focus }}."
@@ -127,18 +119,16 @@ Activities support [parameter substitution](#parameters), allowing you to create
       "parameters": [
         {
           "key": "language",
-          "input_type": "select",
+          "input_type": "string",
           "requirement": "required",
-          "description": "Programming language to review",
-          "options": ["rust", "python", "javascript"]
+          "description": "Programming language to review"
         },
         {
           "key": "focus",
-          "input_type": "select",
+          "input_type": "string",
           "requirement": "optional",
           "default": "best practices",
-          "description": "Review focus area",
-          "options": ["best practices", "security", "performance"]
+          "description": "Review focus area"
         }
       ],
       "activities": [
@@ -151,7 +141,7 @@ Activities support [parameter substitution](#parameters), allowing you to create
     }
     ```
   </TabItem>
-</Tabs>
+</Tab>
 
 In this example:
 - The message activity displays instructions with substituted parameter values, for example: "Click an option below to start reviewing rust code with a focus on best practices."
@@ -310,7 +300,7 @@ Parameter substitution uses Jinja-style template syntax with `{{ parameter_name 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
 | `key` | String | ✅ | Unique identifier for the parameter |
-| `input_type` | String | ✅ | Type of input: `"number"`, `"boolean"`, `"date"`, `"time"`, `"file"`, `"select"`, or `"multiselect"` |
+| `input_type` | String | ✅ | Type of input: `"string"` (default), `"number"`, `"boolean"`, `"date"`, `"file"`, `"select"`, or `"multiselect"` |
 | `requirement` | String | ✅ | One of: "required", "optional", or "user_prompt" |
 | `description` | String | ✅ | Human-readable description of the parameter |
 | `default` | String | - | Default value for optional parameters |
@@ -326,10 +316,10 @@ The `required` and `optional` parameters work best for recipes opened in goose D
 
 #### Input Types
 
+- `string`: Default type. The parameter value is used as-is in template substitution
 - `number`: Numeric values. Desktop UI provides number input validation
 - `boolean`: True/false values. Desktop UI shows dropdown with "True"/"False" options
 - `date`: Date values. Currently renders as text input
-- `time`: Time values. Currently renders as text input
 - `file`: The parameter value should be a file path. goose reads the file contents and substitutes the actual content (not the path) into the template
 - `select`: Dropdown selection with predefined options. Requires `options` field
 - `multiselect`: Multiple selection from predefined options. Requires `options` field. Returns array of selected values
@@ -494,7 +484,7 @@ retry:
   max_retries: 5
   timeout_seconds: 10
   checks:
-    - type:shell
+    - type: Shell
       command: "test $(cat /tmp/counter.txt 2>/dev/null || echo 0) -ge 3"
   on_failure: "echo 'Counter is at:' $(cat /tmp/counter.txt 2>/dev/null || echo 0) '(need 3 to succeed)'"
 ```
@@ -512,9 +502,9 @@ retry:
   timeout_seconds: 30
   on_failure_timeout_seconds: 60
   checks:
-    - type: shell
+    - type: Shell
       command: "curl -f http://localhost:8080/health"
-    - type: shell  
+    - type: Shell  
       command: "pgrep -f 'web-service' > /dev/null"
   on_failure: "systemctl stop web-service || killall web-service"
 ```
@@ -711,7 +701,6 @@ The following validation rules from [`validate_recipe.rs`](https://github.com/bl
 ### Recipe-Level Validation
 
 - **At least one of `instructions` or `prompt` must be present** (`validate_prompt_or_instructions`)
-- **Title must be between 5 and 150 characters** (`validate_title_length`)
 - **JSON schema must be valid** if `response.json_schema` is specified (`validate_json_schema`)
 
 ### Parameter Validation
@@ -731,13 +720,18 @@ The following validation rules from [`validate_recipe.rs`](https://github.com/bl
 version: "1.0.0"
 title: "Example Recipe"
 description: "A sample recipe demonstrating the format"
-instructions: "Process {{ file_count }} files and output in {{ output_format }} format. Configuration: {{ config_file }}"
+instructions: "Process {{ file_count }} files using {{ required_param }} and output in {{ output_format }} format. Configuration: {{ config_file }}"
 prompt: "Start processing with the provided parameters"
 parameters:
+  - key: required_param
+    input_type: string
+    requirement: required
+    description: "A required text parameter"
+  
   - key: file_count
     input_type: number
     requirement: optional
-    default: "10"
+    default: 10
     description: "Maximum number of files to process"
   
   - key: output_format
@@ -802,9 +796,15 @@ response:
   "version": "1.0.0",
   "title": "Example Recipe",
   "description": "A sample recipe demonstrating the format",
-  "instructions": "Process {{ file_count }} files and output in {{ output_format }} format. Configuration: {{ config_file }}",
+  "instructions": "Process {{ file_count }} files using {{ required_param }} and output in {{ output_format }} format. Configuration: {{ config_file }}",
   "prompt": "Start processing with the provided parameters",
   "parameters": [
+    {
+      "key": "required_param",
+      "input_type": "string",
+      "requirement": "required",
+      "description": "A required text parameter"
+    },
     {
       "key": "file_count",
       "input_type": "number",
