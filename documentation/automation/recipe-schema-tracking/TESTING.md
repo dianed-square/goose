@@ -73,7 +73,7 @@ git push origin your-branch-name
 
 #### Step 3: Run Workflow Manually
 
-1. Click "Update Recipe Documentation" workflow
+1. Click "Update Recipe Documentation" workflow (docs-update-recipe-ref.yml)
 2. Click "Run workflow" button
 3. Select your branch
 4. Configure inputs (see test scenarios below)
@@ -213,7 +213,7 @@ Once testing is complete:
 
 1. **Merge automation to main**: Create PR for `documentation/automation/recipe-schema-tracking/`
 2. **Merge baseline docs**: Create PR for revised `recipe-reference.md`
-3. **Merge workflow**: Create PR for `.github/workflows/update-recipe-docs.yml`
+3. **Merge workflow**: Create PR for `.github/workflows/docs-update-recipe-ref.yml`
 4. **Enable release trigger**: Uncomment `release:` section in workflow
 
 After deployment, the workflow will automatically:
