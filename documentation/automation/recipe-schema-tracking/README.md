@@ -1,6 +1,6 @@
-# Recipe Documentation Automation
+# Recipe Schema Tracking
 
-Automated pipeline for detecting and documenting goose Recipe schema changes and validation rules.
+Automated pipeline for detecting and documenting Recipe schema and validation rule changes between goose releases.
 
 ## Overview
 
@@ -11,24 +11,39 @@ This automation keeps the [Recipe Reference Guide](https://block.github.io/goose
 3. **Synthesizing** human-readable change documentation (AI-powered)
 4. **Updating** the Recipe Reference Guide (AI-powered)
 
+The automation runs automatically on new releases via GitHub Actions, or can be run manually for testing.
+
 ## Quick Start
 
-```bash
-# 1. Extract current state
-./scripts/extract-schema.sh > output/new-schema.json
-./scripts/extract-validation-structure.sh > output/new-validation-structure.json
+### Automated (GitHub Actions)
 
-# 2. Detect changes (requires old-*.json files from previous version)
+The automation runs automatically when a new release is published. See [TESTING.md](./TESTING.md) for testing instructions.
+
+### Manual (Local Testing)
+
+```bash
+# Run the complete pipeline
+./scripts/run-pipeline.sh v1.14.0 v1.15.0
+
+# Or run individual steps:
+# 1. Extract validation structures
+./scripts/extract-validation-structure.sh v1.14.0 > output/old-validation-structure.json
+./scripts/extract-validation-structure.sh v1.15.0 > output/new-validation-structure.json
+
+# 2. Extract schemas
+./scripts/extract-schema.sh v1.15.0 > output/new-schema.json
+
+# 3. Detect changes
 ./scripts/diff-validation-structures.sh output/old-validation-structure.json \
                                         output/new-validation-structure.json \
                                         > output/validation-changes.json
 
-# 3. Generate human-readable change documentation
+# 4. Generate human-readable change documentation
 cd output && goose run --recipe ../recipes/synthesize-validation-changes.yaml
 
-# 4. Update recipe-reference.md
-export RECIPE_REF_PATH=/path/to/goose/documentation/docs/guides/recipes/recipe-reference.md
-goose run --recipe recipes/update-recipe-reference.yaml
+# 5. Update recipe-reference.md
+export RECIPE_REF_PATH=/path/to/recipe-reference.md
+goose run --recipe ../recipes/update-recipe-reference.yaml
 ```
 
 ## Architecture
@@ -311,8 +326,9 @@ goose run --recipe recipes/update-recipe-reference.yaml
 ## Directory Structure
 
 ```
-recipe-schema/
+recipe-schema-tracking/
 ├── README.md                           # This file
+├── TESTING.md                          # Testing guide for GitHub Actions workflow
 ├── .gitignore                          # Excludes output/ directory
 ├── config/                             # Configuration files
 │   ├── serde-attributes.json           # Serde attribute definitions
@@ -334,45 +350,49 @@ recipe-schema/
     ├── new-validation-structure.json   # Current version structure
     ├── validation-changes.json         # Detected changes (structured)
     ├── validation-changes.md           # Change documentation (human-readable)
-    └── update-summary.md               # Documentation update summary
+    ├── update-summary.md               # Documentation update summary
+    └── pipeline.log                    # Pipeline execution log
 ```
 
-## Testing
+## GitHub Actions Workflow
 
-The automation has been tested with manufactured changes covering:
+The automation runs via `.github/workflows/docs-update-recipe-ref.yml`:
 
-- ✅ Field additions (simple and complex with Field Specifications)
-- ✅ Field removals (simple and with Field Specifications)
-- ✅ Field renames (detected as remove + add)
-- ✅ Type changes (optional ↔ required, with/without Field Specifications)
-- ✅ Enum additions and removals (single and multiple)
-- ✅ Validation rule additions and removals
-- ✅ Validation rule modifications (changed requirements)
-- ✅ Example updates (when schema changes invalidate examples)
+- **Trigger**: Automatically on new releases, or manually for testing
+- **Process**: Extracts schemas, detects changes, updates documentation
+- **Output**: Creates a PR with updated `recipe-reference.md` if changes detected
+- **Testing**: See [TESTING.md](./TESTING.md) for detailed testing instructions
 
-All tests verified that:
-- Only documented changes were applied
-- No unintended modifications occurred
-- Formatting and style remained consistent
-- All internal links remained valid
+## What Gets Tracked
 
-## Future Enhancements
+### Struct Fields (6 structs)
+- `Recipe` - Top-level recipe structure
+- `Author` - Recipe author information  
+- `Settings` - Recipe settings (model, provider, etc.)
+- `Response` - Structured output schema
+- `SubRecipe` - Sub-recipe definitions
+- `RecipeParameter` - Parameter definitions
 
-- **GitHub Actions integration**: Trigger on new releases
-- **Automated PR creation**: Create PRs with documentation updates
-- **Regression testing**: Automated validation of generated documentation
-- **Extension validation**: Separate pipeline for extension-specific rules
-- **Nested type tracking**: Detect changes in nested structs (Author, Response, etc.)
+### Changes Detected
+- ✅ Fields added/removed
+- ✅ Field type changes (e.g., `Option<T>` → `T`)
+- ✅ Comment changes (inline documentation)
+- ✅ Validation functions added/removed/modified
+- ✅ Error messages changed
+- ✅ Enum value changes
 
-## Contributing
+## Maintenance
 
 When modifying the automation:
 
-1. **Test with manufactured changes** before running on real versions
-2. **Verify outputs** against source code (don't trust AI blindly)
-3. **Update configuration** if validation files move or new attributes are added
-4. **Document design decisions** that affect future maintenance
+1. **Test locally first**: Run `./scripts/run-pipeline.sh` with test versions
+2. **Verify outputs**: Check generated files against source code
+3. **Update configuration**: If validation files move or new attributes added
+4. **Test in fork**: Use GitHub Actions workflow with dry-run mode
+5. **Document changes**: Update this README with design decisions
 
-## License
+## Related Documentation
 
-This automation is part of the goose project and follows the same license.
+- [TESTING.md](./TESTING.md) - How to test the GitHub Actions workflow
+- [Automation Overview](../README.md) - All automation projects
+- [Recipe Reference Guide](../../docs/guides/recipes/recipe-reference.md) - Target documentation
