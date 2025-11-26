@@ -226,13 +226,13 @@ instructions: |
   
   ## File Locations
   
-  - Input 1: ./output/validation-changes.json (the diff)
-  - Input 2: ./output/old-validation-structure.json (before state)
-  - Input 3: ./output/new-validation-structure.json (after state)
-  - Input 4: ./output/old-schema.json (previous schema for comparison)
-  - Input 5: ./output/new-schema.json (current schema with descriptions)
-  - Input 6: ./config/serde-attributes.json (defaults)
-  - Output: ./output/validation-changes.md
+  - Input 1: ./validation-changes.json (the diff)
+  - Input 2: ./old-validation-structure.json (before state)
+  - Input 3: ./new-validation-structure.json (after state)
+  - Input 4: ./old-schema.json (previous schema for comparison)
+  - Input 5: ./new-schema.json (current schema with descriptions)
+  - Input 6: ../config/serde-attributes.json (defaults)
+  - Output: ./validation-changes.md
   
   Start by reading all SIX input files, then generate the validation changes documentation.
 

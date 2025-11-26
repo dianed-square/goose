@@ -227,10 +227,10 @@ instructions: |
   
   ## File Locations Summary
   
-  - Input 1: `./output/validation-changes.md` (change documentation)
+  - Input 1: `./validation-changes.md` (change documentation)
   - Input 2: `${RECIPE_REF_PATH}` or `${GOOSE_REPO}/documentation/docs/guides/recipes/recipe-reference.md` (target file)
   - Output 1: Same as Input 2 (updated in place)
-  - Output 2: `./output/update-summary.md` (change summary)
+  - Output 2: `./update-summary.md` (change summary)
   
   ## Environment Variables
   
