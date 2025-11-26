@@ -67,6 +67,19 @@ jobs:
           echo "$HOME/.cargo/bin" >> $GITHUB_PATH
           goose --version
       
+      - name: Configure goose with GitHub Models provider
+        run: |
+          # Configure goose to use GitHub Models (available in GitHub Actions)
+          mkdir -p ~/.config/goose
+          cat > ~/.config/goose/config.yaml << 'EOF'
+          provider: github
+          github:
+            model: gpt-4o
+          EOF
+          echo "✅ Configured goose with GitHub Models provider"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      
       - name: Determine versions to compare
         id: versions
         run: |
