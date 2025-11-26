@@ -37,6 +37,11 @@ jobs:
     name: Update Recipe Documentation
     runs-on: ubuntu-latest
     
+    env:
+      GOOSE_PROVIDER: ${{ vars.GOOSE_PROVIDER || 'openai' }}
+      GOOSE_MODEL: ${{ vars.GOOSE_MODEL || 'gpt-4o' }}
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+    
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -127,9 +132,6 @@ jobs:
         working-directory: documentation/automation/recipe-schema-tracking
         env:
           RECIPE_REF_PATH: ${{ github.workspace }}/documentation/docs/guides/recipes/recipe-reference.md
-          GOOSE_PROVIDER: ${{ vars.GOOSE_PROVIDER || 'openai' }}
-          GOOSE_MODEL: ${{ vars.GOOSE_MODEL || 'gpt-4o' }}
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: |
           echo "🤖 Running AI synthesis with provider: $GOOSE_PROVIDER, model: $GOOSE_MODEL"
           goose run --recipe recipes/update-recipe-reference.yaml
