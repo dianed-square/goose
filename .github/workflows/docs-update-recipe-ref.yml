@@ -140,7 +140,7 @@ jobs:
       
       - name: Update recipe-reference.md (AI synthesis)
         if: steps.extract.outputs.has_changes == 'true'
-        working-directory: documentation/automation/recipe-schema-tracking
+        working-directory: documentation/automation/recipe-schema-tracking/output
         env:
           RECIPE_REF_PATH: ${{ github.workspace }}/documentation/docs/guides/recipes/recipe-reference.md
         run: |
@@ -160,7 +160,7 @@ jobs:
           ls -la
           echo ""
           echo "🤖 Running AI synthesis..."
-          goose run --recipe recipes/update-recipe-reference.yaml
+          goose run --recipe ../recipes/synthesize-validation-changes.yaml
       
       - name: Upload automation outputs
         if: always()
