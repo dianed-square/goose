@@ -95,6 +95,7 @@ jobs:
         id: extract
         working-directory: documentation/automation/recipe-schema-tracking
         run: |
+          mkdir -p output
           ./scripts/run-pipeline.sh "$OLD_VERSION" "$NEW_VERSION" | tee output/pipeline.log
           
           HAS_CHANGES=$(jq -r '.has_changes' output/validation-changes.json)
