@@ -98,8 +98,9 @@ jobs:
         env:
           GOOSE_REPO: ${{ github.workspace }}
         run: |
+          set -o pipefail  # Ensure pipeline failures are caught
           mkdir -p output
-          ./scripts/run-pipeline.sh "$OLD_VERSION" "$NEW_VERSION" | tee output/pipeline.log
+          ./scripts/run-pipeline.sh "$OLD_VERSION" "$NEW_VERSION" 2>&1 | tee output/pipeline.log
           
           HAS_CHANGES=$(jq -r '.has_changes' output/validation-changes.json)
           echo "has_changes=$HAS_CHANGES" >> $GITHUB_OUTPUT
