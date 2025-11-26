@@ -36,20 +36,16 @@ See [Shareable Recipes](/docs/guides/recipes/session-recipes) to learn how to cr
 ## Core Recipe Schema
 
 Every recipe follows this schema structure:
-
 | Field | Required | Default | Description |
 |-------|----------|---------|-------------|
 | `title` | ✅ | - | A short title describing the recipe (3-100 characters) |
 | `description` | ✅ | - | A detailed description of what the recipe does (10-500 characters) |
 | [`activities`](#activities) | - | `[]` | List of example prompts that appear as clickable bubbles in goose Desktop |
-| `context` | - | `[]` | Additional context strings to provide to the AI (deprecated, use extensions instead) |
 | [`extensions`](#extensions) | - | `[]` | List of extension configurations |
 | `instructions` | ✅*  | - | Template instructions that can include parameter substitutions |
 | [`parameters`](#parameters) | - | `[]` | List of parameter definitions for dynamic recipes |
 | `prompt` | ✅*  | - | A template prompt that can include parameter substitutions; required in headless (non-interactive) mode |
 | [`response`](#response) | - | - | Structured output schema for automation workflows |
-| [`retry`](#retry) | - | - | Configuration for automated retry logic with success validation |
-| [`settings`](#settings) | - | `{}` | Configuration for model provider, model name, and other settings |
 | [`sub_recipes`](#subrecipes) | - | `[]` | List of subrecipes |
 | `version` | ✅ | "1.0.0" | The recipe format version |
 
@@ -702,9 +698,13 @@ The following validation rules from [`validate_recipe.rs`](https://github.com/bl
 ### Recipe-Level Validation
 
 - **At least one of `instructions` or `prompt` must be present** (`validate_prompt_or_instructions`)
+- **At least one of `instructions` or `prompt` must be present** (`validate_prompt_or_instructions`)
 
 ### Parameter Validation
 
+- **Ensure the JSON schema of recipes is valid** (`validate_json_schema`)
+- **Parameters must be correctly referenced within templates** (`validate_parameters_in_template`)
+  
 - **Optional parameters must have default values** (`validate_optional_parameters`)
 - **File parameters cannot have default values** to prevent importing sensitive files (`validate_optional_parameters`)
 
