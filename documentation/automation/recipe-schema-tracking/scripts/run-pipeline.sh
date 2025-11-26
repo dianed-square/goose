@@ -63,9 +63,24 @@ if [ "$HAS_CHANGES" = "true" ]; then
     
     echo ""
     echo "Step 4: Synthesizing validation changes documentation..."
-    goose run --recipe ../recipes/synthesize-validation-changes.yaml
     
-    if [ -f validation-changes.md ]; then
+    # Run goose and capture output, filtering out session logs
+    goose run --recipe ../recipes/synthesize-validation-changes.yaml 2>&1 | \
+        sed -E 's/\x1B\[[0-9;]*[mK]//g' | \
+        grep -v "^starting session" | \
+        grep -v "^    session id:" | \
+        grep -v "^    working directory:" | \
+        grep -v "^─── text_editor" | \
+        grep -v "^path:" | \
+        grep -v "^command:" | \
+        grep -v "^Closing session" | \
+        grep -v "^Loading recipe:" | \
+        grep -v "^Description:" | \
+        sed '/^$/N;/^\n$/D' > validation-changes.md.tmp
+    
+    # Check if we got meaningful content (more than just whitespace)
+    if [ -s validation-changes.md.tmp ] && grep -q "# Recipe Validation Changes" validation-changes.md.tmp; then
+        mv validation-changes.md.tmp validation-changes.md
         echo "✓ Generated validation-changes.md ($(wc -l < validation-changes.md) lines)"
         echo ""
         echo "=========================================="
