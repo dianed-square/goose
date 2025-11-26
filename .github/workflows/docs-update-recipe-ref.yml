@@ -67,13 +67,6 @@ jobs:
           echo "$HOME/.cargo/bin" >> $GITHUB_PATH
           goose --version
       
-      - name: Configure goose provider
-        run: |
-          echo "✅ Goose will use provider: $GOOSE_PROVIDER with model: $GOOSE_MODEL"
-        env:
-          GOOSE_PROVIDER: github
-          GOOSE_MODEL: gpt-4o
-      
       - name: Determine versions to compare
         id: versions
         run: |
@@ -114,7 +107,7 @@ jobs:
         working-directory: documentation/automation/recipe-schema-tracking
         env:
           GOOSE_REPO: ${{ github.workspace }}
-          GOOSE_PROVIDER: github
+          GOOSE_PROVIDER: github_copilot
           GOOSE_MODEL: gpt-4o
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
