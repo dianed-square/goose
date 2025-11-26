@@ -107,23 +107,10 @@ jobs:
         working-directory: documentation/automation/recipe-schema-tracking
         env:
           GOOSE_REPO: ${{ github.workspace }}
-          GOOSE_PROVIDER: github_copilot
-          GOOSE_MODEL: gpt-4o
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -o pipefail  # Ensure pipeline failures are caught
           
-          echo "📍 Current directory: $(pwd)"
-          echo "📍 GOOSE_REPO: $GOOSE_REPO"
-          echo "📍 OLD_VERSION: $OLD_VERSION"
-          echo "📍 NEW_VERSION: $NEW_VERSION"
-          echo "📍 Checking if scripts exist:"
-          ls -la scripts/
-          echo "📍 Checking goose config:"
-          cat ~/.config/goose/config.yaml || echo "Config file not found"
-          
           mkdir -p output
-          echo "📍 Running pipeline..."
           ./scripts/run-pipeline.sh "$OLD_VERSION" "$NEW_VERSION" 2>&1 | tee output/pipeline.log
           
           HAS_CHANGES=$(jq -r '.has_changes' output/validation-changes.json)
@@ -132,15 +119,21 @@ jobs:
           if [ "$HAS_CHANGES" = "false" ]; then
             echo "✅ No changes detected"
           else
-            echo "✅ Changes detected - proceeding with documentation update"
+            echo "✅ Changes detected"
           fi
       
-      - name: Update recipe-reference.md
+      - name: Update recipe-reference.md (AI synthesis)
         if: steps.extract.outputs.has_changes == 'true'
         working-directory: documentation/automation/recipe-schema-tracking
         env:
           RECIPE_REF_PATH: ${{ github.workspace }}/documentation/docs/guides/recipes/recipe-reference.md
-        run: goose run --recipe recipes/update-recipe-reference.yaml
+          GOOSE_PROVIDER: ${{ vars.GOOSE_PROVIDER || 'databricks' }}
+          GOOSE_MODEL: ${{ vars.GOOSE_MODEL || 'databricks-meta-llama-3-3-70b-instruct' }}
+          DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
+          DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
+        run: |
+          echo "🤖 Running AI synthesis with provider: $GOOSE_PROVIDER, model: $GOOSE_MODEL"
+          goose run --recipe recipes/update-recipe-reference.yaml
       
       - name: Upload automation outputs
         if: always()
