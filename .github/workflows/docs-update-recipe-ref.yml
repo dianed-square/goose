@@ -67,18 +67,12 @@ jobs:
           echo "$HOME/.cargo/bin" >> $GITHUB_PATH
           goose --version
       
-      - name: Configure goose with GitHub Models provider
+      - name: Configure goose provider
         run: |
-          # Configure goose to use GitHub Models (available in GitHub Actions)
-          mkdir -p ~/.config/goose
-          cat > ~/.config/goose/config.yaml << 'EOF'
-          provider: github
-          github:
-            model: gpt-4o
-          EOF
-          echo "✅ Configured goose with GitHub Models provider"
+          echo "✅ Goose will use provider: $GOOSE_PROVIDER with model: $GOOSE_MODEL"
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GOOSE_PROVIDER: github
+          GOOSE_MODEL: gpt-4o
       
       - name: Determine versions to compare
         id: versions
@@ -120,6 +114,8 @@ jobs:
         working-directory: documentation/automation/recipe-schema-tracking
         env:
           GOOSE_REPO: ${{ github.workspace }}
+          GOOSE_PROVIDER: github
+          GOOSE_MODEL: gpt-4o
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -o pipefail  # Ensure pipeline failures are caught
