@@ -94,6 +94,8 @@ jobs:
       - name: Extract and compare schemas
         id: extract
         working-directory: documentation/automation/recipe-schema-tracking
+        env:
+          GOOSE_REPO: ${{ github.workspace }}
         run: |
           mkdir -p output
           ./scripts/run-pipeline.sh "$OLD_VERSION" "$NEW_VERSION" | tee output/pipeline.log
