@@ -44,6 +44,14 @@ jobs:
           fetch-depth: 0  # Fetch all history for version comparison
           fetch-tags: true  # Fetch all tags so we can checkout version tags
       
+      - name: Fetch upstream tags
+        run: |
+          # Add upstream remote and fetch tags (needed for forks)
+          git remote add upstream https://github.com/block/goose.git || true
+          git fetch upstream --tags
+          echo "✅ Fetched tags from upstream"
+          echo "Total tags available: $(git tag | wc -l)"
+      
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
       
