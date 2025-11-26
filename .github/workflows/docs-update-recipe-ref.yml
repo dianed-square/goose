@@ -56,9 +56,6 @@ jobs:
           echo "✅ Fetched tags from upstream (fork mode)"
           echo "Total tags available: $(git tag | wc -l)"
       
-      - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@stable
-      
       - name: Install system dependencies
         run: |
           sudo apt-get update
@@ -66,8 +63,10 @@ jobs:
       
       - name: Install goose CLI
         run: |
-          cargo install --path crates/goose-cli
-          echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+          mkdir -p /home/runner/.local/bin
+          curl -fsSL https://github.com/block/goose/releases/download/stable/download_cli.sh \
+            | CONFIGURE=false GOOSE_BIN_DIR=/home/runner/.local/bin bash
+          echo "/home/runner/.local/bin" >> $GITHUB_PATH
           goose --version
       
       - name: Configure goose for CI
