@@ -159,8 +159,12 @@ jobs:
           pwd
           ls -la
           echo ""
-          echo "🤖 Running AI synthesis..."
+          echo "🤖 Step 1: Running validation changes synthesis..."
           goose run --recipe ../recipes/synthesize-validation-changes.yaml
+          
+          echo ""
+          echo "🤖 Step 2: Applying changes to recipe-reference.md..."
+          goose run --recipe ../recipes/update-recipe-reference.yaml
       
       - name: Upload automation outputs
         if: always()
