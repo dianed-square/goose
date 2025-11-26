@@ -237,7 +237,12 @@ instructions: |
   Start by reading all SIX input files, then generate the validation changes documentation.
 
 prompt: |
-  Please analyze the validation changes and generate comprehensive release notes in validation-changes.md.
+  Please analyze the validation changes and generate comprehensive release notes.
+  
+  Steps:
+  1. Read all SIX input files (validation-changes.json, old/new-validation-structure.json, old/new-schema.json, serde-attributes.json)
+  2. Analyze the changes
+  3. Write the documentation to ./validation-changes.md using the text_editor tool
   
   Focus on:
   - User impact (how does this affect recipe authors?)
@@ -245,3 +250,5 @@ prompt: |
   - Migration guidance for breaking changes
   - Schema-only changes (enum additions, required field changes)
   - Clear, actionable documentation
+  
+  IMPORTANT: You MUST use the text_editor tool to write the output to ./validation-changes.md
