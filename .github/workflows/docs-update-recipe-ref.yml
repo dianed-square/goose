@@ -109,7 +109,16 @@ jobs:
           GOOSE_REPO: ${{ github.workspace }}
         run: |
           set -o pipefail  # Ensure pipeline failures are caught
+          
+          echo "📍 Current directory: $(pwd)"
+          echo "📍 GOOSE_REPO: $GOOSE_REPO"
+          echo "📍 OLD_VERSION: $OLD_VERSION"
+          echo "📍 NEW_VERSION: $NEW_VERSION"
+          echo "📍 Checking if scripts exist:"
+          ls -la scripts/
+          
           mkdir -p output
+          echo "📍 Running pipeline..."
           ./scripts/run-pipeline.sh "$OLD_VERSION" "$NEW_VERSION" 2>&1 | tee output/pipeline.log
           
           HAS_CHANGES=$(jq -r '.has_changes' output/validation-changes.json)
