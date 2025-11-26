@@ -100,6 +100,17 @@ jobs:
           GOOSE_REPO: ${{ github.workspace }}
         run: |
           set -o pipefail  # Ensure pipeline failures are caught
+          
+          # Debug: Check git state
+          echo "🔍 Debugging git state:"
+          cd $GOOSE_REPO
+          echo "Available tags:"
+          git tag | grep -E "v1\.(14|15)" || echo "No v1.14/v1.15 tags found"
+          echo "Can we find v1.14.0?"
+          git rev-parse v1.14.0 2>&1 || echo "v1.14.0 not found"
+          echo "All tags count: $(git tag | wc -l)"
+          cd -
+          
           mkdir -p output
           ./scripts/run-pipeline.sh "$OLD_VERSION" "$NEW_VERSION" 2>&1 | tee output/pipeline.log
           
