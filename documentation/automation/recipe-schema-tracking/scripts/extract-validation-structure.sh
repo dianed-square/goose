@@ -24,10 +24,12 @@ if [ "$VERSION" != "main" ]; then
 fi
 
 # Start JSON output
+# Use ISO 8601 format that works on both macOS and Linux
+TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ" 2>/dev/null || date -u -Iseconds 2>/dev/null || date -u)
 cat << EOF
 {
   "version": "$VERSION",
-  "extracted_at": "$(date -u +"%Y-%m-%dT%H:%M:%SZ")",
+  "extracted_at": "$TIMESTAMP",
   "struct_fields": [
 EOF
 

@@ -19,7 +19,12 @@ echo ""
 cd "$(dirname "$0")/../output"
 
 echo "Step 1: Extracting validation structure from $OLD_VERSION..."
-../scripts/extract-validation-structure.sh "$OLD_VERSION" > old-validation-structure.json 2>&1
+if ! ../scripts/extract-validation-structure.sh "$OLD_VERSION" > old-validation-structure.json 2>&1; then
+    echo "✗ Failed to extract validation structure from $OLD_VERSION" >&2
+    echo "Error output:" >&2
+    cat old-validation-structure.json >&2
+    exit 1
+fi
 echo "✓ Extracted $(jq '.struct_fields | length' old-validation-structure.json) fields, $(jq '.validation_functions | length' old-validation-structure.json) functions"
 
 echo ""
