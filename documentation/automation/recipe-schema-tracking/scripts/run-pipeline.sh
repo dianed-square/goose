@@ -28,6 +28,11 @@ fi
 echo "✓ Extracted $(jq '.struct_fields | length' old-validation-structure.json) fields, $(jq '.validation_functions | length' old-validation-structure.json) functions"
 
 echo ""
+echo "Step 1b: Extracting schema from $OLD_VERSION..."
+../scripts/extract-schema.sh "$OLD_VERSION" > old-schema.json 2>&1
+echo "✓ Extracted schema ($(jq '.properties | length' old-schema.json) properties)"
+
+echo ""
 echo "Step 2: Extracting validation structure from $NEW_VERSION..."
 ../scripts/extract-validation-structure.sh "$NEW_VERSION" > new-validation-structure.json 2>&1
 echo "✓ Extracted $(jq '.struct_fields | length' new-validation-structure.json) fields, $(jq '.validation_functions | length' new-validation-structure.json) functions"
@@ -69,7 +74,9 @@ if [ "$HAS_CHANGES" = "true" ]; then
         echo ""
         echo "Output files:"
         echo "  - old-validation-structure.json"
+        echo "  - old-schema.json"
         echo "  - new-validation-structure.json"
+        echo "  - new-schema.json"
         echo "  - validation-changes.json"
         echo "  - validation-changes.md"
         echo ""
