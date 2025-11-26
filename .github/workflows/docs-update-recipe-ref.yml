@@ -120,6 +120,7 @@ jobs:
         working-directory: documentation/automation/recipe-schema-tracking
         env:
           GOOSE_REPO: ${{ github.workspace }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -o pipefail  # Ensure pipeline failures are caught
           
@@ -129,6 +130,8 @@ jobs:
           echo "📍 NEW_VERSION: $NEW_VERSION"
           echo "📍 Checking if scripts exist:"
           ls -la scripts/
+          echo "📍 Checking goose config:"
+          cat ~/.config/goose/config.yaml || echo "Config file not found"
           
           mkdir -p output
           echo "📍 Running pipeline..."
