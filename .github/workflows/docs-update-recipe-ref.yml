@@ -38,8 +38,6 @@ jobs:
     runs-on: ubuntu-latest
     
     env:
-      GOOSE_PROVIDER: ${{ vars.GOOSE_PROVIDER || 'openai' }}
-      GOOSE_MODEL: ${{ vars.GOOSE_MODEL || 'gpt-4o' }}
       OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
     
     steps:
@@ -73,6 +71,9 @@ jobs:
           goose --version
       
       - name: Configure goose for CI
+        env:
+          GOOSE_PROVIDER: ${{ vars.GOOSE_PROVIDER || 'openai' }}
+          GOOSE_MODEL: ${{ vars.GOOSE_MODEL || 'gpt-4o' }}
         run: |
           mkdir -p ~/.config/goose
           cat <<EOF > ~/.config/goose/config.yaml
