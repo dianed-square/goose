@@ -46,8 +46,10 @@ jobs:
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
       
-      - name: Install jq
-        run: sudo apt-get update && sudo apt-get install -y jq
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y jq libxcb1-dev libxcb-render0-dev libxcb-shape0-dev libxcb-xfixes0-dev
       
       - name: Install goose CLI
         run: |
