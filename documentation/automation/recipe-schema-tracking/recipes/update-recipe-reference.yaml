@@ -237,8 +237,12 @@ instructions: |
 prompt: |
   Please update the Recipe Reference Guide based on the validation changes in validation-changes.md.
   
-  CRITICAL: Only make changes that are explicitly documented in validation-changes.md.
-  Do NOT make general improvements, reorganizations, or clarifications.
+  CRITICAL INSTRUCTIONS:
+  1. Only make changes that are explicitly documented in validation-changes.md
+  2. Do NOT make general improvements, reorganizations, or clarifications
+  3. Use the EXACT file path from the RECIPE_REF_PATH environment variable when editing recipe-reference.md
+     - Do NOT create shortened paths or use ~ notation
+     - The full path is provided in the RECIPE_REF_PATH environment variable
   
   Update THREE areas:
   1. Core Recipe Schema table - for field additions/removals/type changes
