@@ -42,7 +42,6 @@ Every recipe follows this schema structure:
 | `title` | ✅ | - | A short title describing the recipe (3-100 characters) |
 | `description` | ✅ | - | A detailed description of what the recipe does (10-500 characters) |
 | [`activities`](#activities) | - | `[]` | List of example prompts that appear as clickable bubbles in goose Desktop |
-| `context` | - | `[]` | Additional context strings to provide to the AI (deprecated, use extensions instead) |
 | [`extensions`](#extensions) | - | `[]` | List of extension configurations |
 | `instructions` | ✅*  | - | Template instructions that can include parameter substitutions |
 | [`parameters`](#parameters) | - | `[]` | List of parameter definitions for dynamic recipes |
@@ -701,10 +700,12 @@ The following validation rules from [`validate_recipe.rs`](https://github.com/bl
 
 ### Recipe-Level Validation
 
+- **JSON Schema Validation**: Validates the JSON schema of a recipe to ensure it meets specified requirements (`validate_json_schema`)
 - **At least one of `instructions` or `prompt` must be present** (`validate_prompt_or_instructions`)
 
 ### Parameter Validation
 
+- **Parameters in Template Validation**: Ensures parameters are correctly defined within templates (`validate_parameters_in_template`)
 - **Optional parameters must have default values** (`validate_optional_parameters`)
 - **File parameters cannot have default values** to prevent importing sensitive files (`validate_optional_parameters`)
 
