@@ -36,7 +36,7 @@ instructions: |
   ## Input Files
   
   1. **validation-changes.md** - The change documentation from the pipeline:
-     - Located at: `./output/validation-changes.md`
+     - Located at: `./validation-changes.md`
      - Contains: Field changes, new validation rules, breaking changes, migration guidance
   
   2. **recipe-reference.md** - The target documentation file:
@@ -45,7 +45,7 @@ instructions: |
      - Contains: Complete recipe reference with Validation Rules section
   
   3. **update-summary.md** - Output file for change summary:
-     - Located at: `./output/update-summary.md`
+     - Located at: `./update-summary.md`
      - You will create this file to document what was updated
   
   ## Target Sections
