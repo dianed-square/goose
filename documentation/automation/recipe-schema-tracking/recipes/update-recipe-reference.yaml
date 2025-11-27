@@ -7,23 +7,32 @@ extensions:
     name: developer
 
 instructions: |
-  You are a technical documentation specialist updating the Recipe Reference Guide with validation rule changes.
+  You are a technical documentation specialist updating the Recipe Reference Guide with schema and validation rule changes.
   
   ## ⚠️ CRITICAL RULES
   
-  1. **ONLY change what is explicitly listed in validation-changes.md**
-  2. **DO NOT remove any content except what is documented as removed**
-  3. **DO NOT add any content except what is documented as added**
-  4. **DO NOT modify any content except what is documented as changed**
-  5. **Preserve all other content exactly as-is**
+  1. **Only Update What's Documented**: If a field, rule, or section is NOT mentioned in validation-changes.md, DO NOT touch it
+  2. **Verify Before Removing**: Before removing any field or section, double-check it's explicitly listed as "removed" in validation-changes.md
+  3. **Preserve Everything Else**: All other content, formatting, examples, and sections must remain exactly as-is
+  4. **Table Updates - Use Precise str_replace**: When removing a row from a markdown table:
+     - Use old_str/new_str (NOT diff format)
+     - Include the COMPLETE row you want to remove
+     - Include 1-2 rows before and after for context
+     - Verify your old_str matches EXACTLY what's in the file
+     - Double-check you're not accidentally removing adjacent rows
   
   ## Your Task
   
-  You will update THREE main areas:
+  You will update THREE main areas in recipe-reference.md:
   1. **Core Recipe Schema table** - Field additions, removals, and requirement changes
   2. **Field Specifications sections** - Add/remove/update detailed field documentation
   3. **Validation Rules section** - New, removed, or changed validation rules
-  
+  4. **Maintain Consistency
+     - Match the existing documentation style and tone
+     - Use the same formatting (bullet points, bold text, etc.)
+     - Keep language user-focused and actionable
+     - Maintain alphabetical or logical ordering within subsections
+
   ## Input Files
   
   1. **validation-changes.md** - The change documentation from the pipeline:
@@ -61,6 +70,11 @@ instructions: |
   
   Each field specification typically includes:
   - Schema table (if the field has sub-fields)
+    - Field name
+    - Type
+    - Required (✅) or Optional (-)
+    - Default value
+    - Description
   - Description and usage notes
   - Examples
   - Special considerations
@@ -78,81 +92,53 @@ instructions: |
   
   ## Update Strategy
   
-  ### 1. Analyze Changes
+  ### 1. Read and Analyze
   
-  Read `validation-changes.md` and identify ALL changes:
+  Read `validation-changes.md` completely and identify ALL changes documented.
+
+  **CRITICAL**: Only make changes that are explicitly documented in validation-changes.md. If a field/rule is not mentioned, DO NOT modify it.
+
+  ### 2. Apply Updates
   
-  **Field Changes:**
-  - Added fields (new Recipe fields)
-  - Removed fields (deleted Recipe fields)
-  - Type changes (e.g., String → Option<String>)
-  - Comment changes (if semantically significant)
-  
-  **Validation Rule Changes:**
-  - New validation rules added
-  - Removed validation rules (if any)
-  - Changed validation rules
-  
-  ### 2. Map Changes to Sections
-  
-  **For Field Changes:**
-  - Update the **Core Recipe Schema** table
-  - Add/remove/update **Field Specifications** sections as needed
-  
-  **For Validation Rule Changes:**
-  - Update the **Validation Rules** section
-  - Current subsections: Recipe-Level Validation, Parameter Validation
-  - Add to appropriate subsection (or create new subsection if needed)
-  
-  ### 3. Apply Schema Updates (Field Changes)
-  
-  **Adding New Fields:**
-  - Add a new row for new fields in the Core Schema or Field Specifications tables as needed
-  - Include: Field name, Type, Required (✅ or -), Default value, Description following the table
-  - Maintain alphabetical order within the table
-  - Use information from validation-changes.md for description
-  - **If adding a field to the Core Schema table, determine if the field needs a Field Specification section:**
-    - Simple fields (strings, booleans, simple arrays): NO section needed (e.g., title, version)
-    - Complex fields (objects, arrays of objects, enums with options): YES, add section
-    - Look at existing Field Specifications to see which fields have detailed sections
-  - **If adding a Field Specification section:**
-    - Add it under **## Field Specifications** in alphabetical order
-    - Follow the pattern of similar existing sections (e.g., ### Activities for arrays, ### Settings for objects)
-    - Include: Schema table (if applicable), description, examples, usage notes
-    - Match the structure and style of existing sections
-  
-  **Removing Fields:**
-  - Delete the row from the Core Schema table or respective Field Specifications table
-  - **If the field had a Field Specification section**: Remove that section entirely
-  
-  **Type Changes:**
-  - Update the Type column (e.g., String → Option<String>)
-  - Update the Required column if optionality changed (✅ → -)
-  - Update the Default column if a default value was added/removed
-  - Update the Description if the change affects field behavior
-  - **If the field has a Field Specification section**: Update it to reflect the type change
-  
-  ### 4. Apply Validation Updates (Validation Rule Changes)
-  
-  **For Validation Rule Changes:**
-  - Look at the existing **## Validation Rules** section
-  - Follow the same format: bullet points with description and function name in parentheses
-  - Current subsections: Recipe-Level Validation, Parameter Validation
-  - Add new rules to the appropriate subsection (or create new subsection if needed)
-  - Match the style and formatting of existing rules
-  
-  ### 5. Maintain Consistency
-  
-  - Match the existing documentation style and tone
-  - Use the same formatting (bullet points, bold text, etc.)
-  - Keep language user-focused and actionable
-  - Maintain alphabetical or logical ordering within subsections
-  
+  For each change documented in validation-changes.md, apply the corresponding update using this guide:
+
+  | Change Type | Where to Update | How to Update |
+  |-------------|-----------------|---------------|
+  | **Field added** | Core Schema table | Add new row with Field name, Required (✅/-), Default, Description. Maintain alphabetical order. Use information from validation-changes.md. |
+  | | Field Specifications | If complex field (objects, arrays of objects, enums): Add new section following pattern of similar fields. Include schema table, description, examples. |
+  | **Field removed** | Core Schema table | Delete the row for this field. **IMPORTANT**: Use str_replace with old_str containing the row to remove PLUS 1-2 surrounding rows for context. Verify you're only removing the intended row. |
+  | | Field Specifications (top-level) | If the removed field has its own section: Remove entire section. |
+  | | Field Specifications (nested) | If the removed field is within another field's section: Update that section's schema table to remove the field row. Review section for any other references to the removed field. |
+  | **Field renamed** | Core Schema table | Delete old name row, add new name row (appears as remove + add in validation-changes.md). |
+  | | Field Specifications | Update section header and references if section exists. |
+  | **Type changed** | Core Schema table | Update Type column. If optionality changed: update Required (✅ ↔ -) and Default columns. Update Description if the change affects field behavior. |
+  | | Field Specifications | Update section to reflect type change if section exists. |
+  | **Field description changed (if semantically significant)** | Core Schema table | Update Description column. |
+  | **Enum value added/removed** | Field Specifications | Update enum lists (e.g., Input Types list in Parameters section). |
+  | **Validation rule added** | Validation Rules | Add bullet point with description and function name in parentheses. Add to appropriate subsection (Recipe-Level or Parameter Validation). Follow existing format. |
+  | **Validation rule removed** | Validation Rules | Remove the bullet point. |
+  | **Validation rule modified** | Validation Rules | Update bullet point text to reflect new requirements. |
+
+  **Important Notes:**
+  - Simple fields (strings, booleans, simple arrays) do NOT need Field Specification sections
+  - Complex fields (objects, arrays of objects, enums with options) DO need Field Specification sections
+  - Look at existing Field Specifications to see which fields have detailed sections
+  - Match the structure and style of existing sections when adding new ones
+
+  ### 3. Verification
+
+  **Before finalizing:**
+  1. Review validation-changes.md one more time
+  2. Verify the changes you made to recipe-reference.md match the changes in validation-changes.md
+  3. Confirm you did NOT modify any field/rule that was not mentioned in validation-changes.md
+  4. Check that alphabetical ordering is maintained in tables
+
+
   ## Output Requirements
   
   ### 1. Updated recipe-reference.md
   
-  Update THREE areas:
+  Update THREE areas as detailed in validation-changes.md:
   - **## Core Recipe Schema** - Core Structure table (for field changes)
   - **## Field Specifications** - Add/remove/update sections for complex fields
   - **## Validation Rules** - All subsections (for validation rule changes)
@@ -173,13 +159,14 @@ instructions: |
   ## Changes Applied
   
   ### Structural Requirements
-  - Added: {list new rules}
-  - Modified: {list changed rules}
-  - Removed: {list removed rules}
+  - Added: {list new fields}
+  - Modified: {list changed fields}
+  - Removed: {list removed fields}
   
   ### Parameter Validation
   - Added: {list new rules}
   - Modified: {list changed rules}
+  - Removed: {list removed rules}
   
   ### [Other Subsections]
   ...
