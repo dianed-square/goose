@@ -42,7 +42,6 @@ Every recipe follows this schema structure:
 | `title` | ✅ | - | A short title describing the recipe (3-100 characters) |
 | `description` | ✅ | - | A detailed description of what the recipe does (10-500 characters) |
 | [`activities`](#activities) | - | `[]` | List of example prompts that appear as clickable bubbles in goose Desktop |
-| `context` | - | `[]` | Additional context strings to provide to the AI (deprecated, use extensions instead) |
 | [`extensions`](#extensions) | - | `[]` | List of extension configurations |
 | `instructions` | ✅*  | - | Template instructions that can include parameter substitutions |
 | [`parameters`](#parameters) | - | `[]` | List of parameter definitions for dynamic recipes |
