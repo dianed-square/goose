@@ -77,7 +77,7 @@ jobs:
       - name: Configure goose for CI
         env:
           GOOSE_PROVIDER: ${{ vars.GOOSE_PROVIDER || 'openai' }}
-          GOOSE_MODEL: ${{ vars.GOOSE_MODEL || 'gpt-5' }}
+          GOOSE_MODEL: ${{ vars.GOOSE_MODEL || 'gpt-4o' }}
         run: |
           mkdir -p ~/.config/goose
           cat <<EOF > ~/.config/goose/config.yaml
