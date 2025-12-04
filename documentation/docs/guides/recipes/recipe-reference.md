@@ -841,6 +841,11 @@ Recipe files must be valid YAML or JSON. In addition, the following [validation 
 - File parameters cannot have default values (prevents importing sensitive files)
 - `response.json_schema` must be a valid JSON schema if specified
 
+### Newly Added Validation Functions
+- **validate_json_schema**: Ensures JSON schemas are correctly formatted and accessible.
+- **validate_prompt_or_instructions**: Checks that either a prompt or instructions are present in recipes.
+- **validate_parameters_in_template**: Validates the presence and correct formatting of parameters within templates.
+- **validate_optional_parameters**: Ensures optional parameters either have no default values (for files) or have appropriate defaults specified.
 ## Error Handling
 
 Common errors to watch for:
