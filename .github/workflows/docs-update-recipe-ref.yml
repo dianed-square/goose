@@ -193,18 +193,24 @@ jobs:
           
           title: "docs: Update Recipe Reference Guide for ${{ steps.versions.outputs.new_version }}"
           body: |
-            ## 📚 Automated Documentation Update
-            
+            ## Summary
+
             This PR updates the Recipe Reference Guide based on schema and validation changes detected between **${{ steps.versions.outputs.old_version }}** and **${{ steps.versions.outputs.new_version }}**.
-            
-            ### 🤖 Automation Details
+
+            ### Type of Change
+            - [x] Documentation
+
+            ### AI Assistance
+            - [x] This PR was created or reviewed with AI assistance
+
+            #### 🤖 Automation Details
             
             - **Workflow**: `docs-update-recipe-ref.yml`
             - **Triggered by**: ${{ github.event_name }}
             - **Previous version**: ${{ steps.versions.outputs.old_version }}
             - **New version**: ${{ steps.versions.outputs.new_version }}
             
-            ### 📋 Changes Detected
+            #### 📋 Changes Detected
             
             Review the workflow artifacts for detailed change analysis:
             - `validation-changes.json` - Structured diff of changes
@@ -219,7 +225,7 @@ jobs:
             - [ ] Check that examples are updated correctly
             - [ ] Ensure validation rules are clearly explained
             - [ ] Confirm no unintended changes were made
-            - [ ] Review migration guidance for breaking changes
+            - [ ] Do changes require additional updates in this or other recipe topics?
             
             ### 🔗 Related
             
