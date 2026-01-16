@@ -9,7 +9,7 @@ Each automation project tracks specific types of changes and updates correspondi
 | Project | Status | Tracks | Updates |
 |---------|--------|--------|---------|
 | [recipe-schema-tracking](./recipe-schema-tracking/) | ✅ Active | Recipe schema & validation rules | Recipe Reference Guide |
-| cli-command-tracking | 🔮 Planned | CLI commands & options | CLI documentation |
+| [cli-command-tracking](./cli-command-tracking/) | ✅ Active | CLI commands & options | CLI Commands Guide |
 | provider-tracking | 🔮 Planned | Supported AI providers | Provider documentation |
 | extension-tracking | 🔮 Planned | Built-in extensions | Extension documentation |
 
