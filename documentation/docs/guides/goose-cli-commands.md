@@ -146,7 +146,7 @@ goose session list --ascending
 Remove one or more saved sessions.
 
 **Options:**
-- **`-i, --id <id>`**: Remove a specific session by its ID
+- **`-i, --session-id <id>`**: Remove a specific session by its ID
 - **`-n, --name <name>`**: Remove a specific session by its name
 - **`-r, --regex <pattern>`**: Remove sessions matching a regex pattern
 
@@ -177,7 +177,7 @@ Export sessions in different formats for backup, sharing, migration, or document
 **Options:**
 - **`-i, --id <id>`**: Export a specific session by ID
 - **`-n, --name <name>`**: Export a specific session by name
-- **`-p, --path <path>`**: Export a specific session by file path
+- **`--path <path>`**: Export a specific session by file path
 - **`-o, --output <file>`**: Save exported content to a file (default: stdout)
 - **`--format <format>`**: Output format: `markdown`, `json`, `yaml`. Default is `markdown`
 
@@ -260,7 +260,7 @@ Execute commands from an instruction file or stdin. Check out the [full guide](/
 - **`-s, --interactive`**: Continue in interactive mode after processing initial input
 - **`-n, --name <name>`**: Name for this run session (e.g. `daily-tasks`)
 - **`-r, --resume`**: Resume from a previous run
-- **`-p, --path <PATH>`**: Path for this run session (e.g. `./playground.jsonl`)
+- **`--path <PATH>`**: Path for this run session (e.g. `./playground.jsonl`)
 - **`--no-session`**: Run goose commands without creating or storing a session file
 
 **Extension Options:**
@@ -366,10 +366,10 @@ Automate recipes by running them on a [schedule](/docs/guides/recipes/session-re
 - `run-now`: Run a scheduled recipe immediately
 
 **Options:**
-- `--id <NAME>`: A unique ID for the scheduled job (e.g. `daily-report`)
+- `--schedule-id <NAME>`: A unique ID for the scheduled job (e.g. `daily-report`)
 - `--cron "* * * * * *"`: Specifies when a job should run using a [cron expression](https://en.wikipedia.org/wiki/Cron#Cron_expression)
 - `--recipe-source <PATH>`: Path to the recipe YAML file
-- `--limit <NUMBER>`: Max number of sessions to display when using the `sessions` command
+- `-l, --limit <NUMBER>`: Max number of sessions to display when using the `sessions` command
 
 **Usage:**
 ```bash
@@ -382,13 +382,13 @@ goose schedule add --id daily-report --cron "0 0 9 * * *" --recipe-source ./reci
 goose schedule list
 
 # List the 10 most recent Goose sessions created by a scheduled job
-goose schedule sessions --id daily-report --limit 10
+goose schedule sessions --schedule-id daily-report --limit 10
 
 # Run a recipe immediately
-goose schedule run-now --id daily-report
+goose schedule run-now --schedule-id daily-report
 
 # Remove a scheduled job
-goose schedule remove --id daily-report
+goose schedule remove --schedule-id daily-report
 ```
 
 ---
