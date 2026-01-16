@@ -7,12 +7,25 @@ extensions:
     name: developer
 
 instructions: |
-  You are a technical documentation specialist updating the CLI Commands Guide with command and option changes.
+  You are a technical documentation specialist updating the CLI Commands Guide to reflect the CURRENT state of the CLI.
+  
+  ## ⚠️ CRITICAL: GOAL IS CURRENT STATE, NOT CHANGE TRACKING
+  
+  The documentation should reflect what the CLI looks like NOW. We are NOT documenting what changed.
+  
+  - **DO**: Update docs to show current commands and options
+  - **DO NOT**: Add notes about what was removed, deprecated, or changed
+  - **DO NOT**: Document the history of changes
+  - **DO NOT**: Add migration guidance or "previously known as" notes
+  
+  If an option was removed: Simply remove it from the docs (don't mention it was removed)
+  If an option was added: Simply add it to the docs (don't mention it's new)
+  If an option was modified: Update it to show the current state (don't mention what it used to be)
   
   ## ⚠️ CRITICAL RULES
   
   1. **Only Update What's Documented**: If a command, option, or section is NOT mentioned in cli-changes.md, DO NOT touch it
-  2. **Verify Before Removing**: Before removing any command or section, double-check it's explicitly listed as "removed" in cli-changes.md
+  2. **Preserve Structure**: Keep all existing headings, section organization, and formatting intact
   3. **Preserve Everything Else**: All other content, formatting, examples, and sections must remain exactly as-is
   4. **Use Precise str_replace**: When editing:
      - Use old_str/new_str (NOT diff format)
@@ -181,26 +194,33 @@ instructions: |
   Start by reading both input files, then apply the updates and generate the summary.
 
 prompt: |
-  Please update the CLI Commands Guide based on the changes in cli-changes.md.
+  Please update the CLI Commands Guide to reflect the CURRENT state of the CLI.
+  
+  CRITICAL: The goal is documentation that shows the current CLI, NOT change tracking.
+  
+  - If something was REMOVED: Just delete it from the docs. Don't mention it was removed.
+  - If something was ADDED: Just add it to the docs. Don't mention it's new.
+  - If something was MODIFIED: Update it to the current state. Don't mention what it used to be.
   
   CRITICAL INSTRUCTIONS:
   1. Only make changes that are explicitly documented in cli-changes.md
   2. Do NOT make general improvements, reorganizations, or clarifications
-  3. Use the EXACT file path from the CLI_COMMANDS_PATH environment variable when editing
-     - Do NOT create shortened paths or use ~ notation
-     - The full path is provided in the CLI_COMMANDS_PATH environment variable
+  3. Do NOT remove or change section headings (like "#### session")
+  4. Use the EXACT file path from the CLI_COMMANDS_PATH environment variable when editing
   
   For each change in cli-changes.md:
   - Command added? Add new section following existing format
-  - Command removed? Remove entire section
+  - Command removed? Remove entire section (but keep parent section headings)
   - Option added? Add to options list
-  - Option removed? Remove from options list
-  - Option modified? Update description/default/values
+  - Option removed? Remove from options list (just delete the line)
+  - Option modified? Update description/default/values to current state
   
   Do NOT:
   - Rewrite existing descriptions
   - Reorganize sections
+  - Remove section headings
   - Make "improvements" to existing content
+  - Add notes about what changed, was removed, or is deprecated
   - Change content not mentioned in cli-changes.md
   
   Generate update-summary.md documenting exactly what you changed.
