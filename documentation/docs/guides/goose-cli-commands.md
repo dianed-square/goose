@@ -31,12 +31,27 @@ Display the help menu.
 ```bash
 goose --help
 ```
+goose --help
+
+---
+
+#### completion
+
+Generate the autocompletion script for the specified shell.
+
+**Options:**
+- **`--help`**: Display help
+
+**Usage:**
+
+```bash
+goose completion <SHELL>
+```
 
 ---
 
 #### configure
 Configure goose settings - providers, extensions, etc.
-
 **Usage:**
 ```bash
 goose configure
@@ -110,7 +125,6 @@ Start or resume interactive chat sessions.
 
 **Extension Options:**
 - **`--with-extension <command>`**: Add stdio extensions
-- **`--with-remote-extension <url>`**: Add remote extensions over SSE
 - **`--with-streamable-http-extension <url>`**: Add remote extensions over Streaming HTTP
 - **`--with-builtin <id>`**: Enable built-in extensions (e.g., 'developer', 'computercontroller')
 
@@ -126,9 +140,8 @@ goose session --resume -p ./session.json    # exported session
 goose session --resume -p ./session.jsonl   # legacy session storage
 
 # Start with extensions
-goose session --with-extension "npx -y @modelcontextprotocol/server-memory"
 goose session --with-builtin developer
-goose session --with-remote-extension "http://localhost:8080/sse"
+goose session --with-extension "npx -y @modelcontextprotocol/server-memory"
 
 # Advanced: Mix multiple extension types
 goose session \
@@ -281,7 +294,7 @@ Generate diagnostics before reporting bugs to provide technical details that hel
 
 ---
 
-### Task Execution
+---
 
 #### run [options]
 Execute commands from an instruction file or stdin. Check out the [full guide](/docs/guides/running-tasks) for more info.
@@ -303,8 +316,7 @@ Execute commands from an instruction file or stdin. Check out the [full guide](/
 
 **Extension Options:**
 - **`--with-extension <COMMAND>`**: Add stdio extensions (can be used multiple times)
-- **`--with-remote-extension <URL>`**: Add remote extensions over SSE (can be used multiple times)
-- **`--with-streamable-http-extension <URL>`**: Add remote extensions over Streaming HTTP (can be used multiple times)
+- **`--streamable-http-extension <URL>`**: Add remote extensions over Streaming HTTP (can be used multiple times)
 - **`--with-builtin <name>`**: Add builtin extensions by name (e.g., 'developer' or multiple: 'developer,github')
 
 **Control Options:**
@@ -350,12 +362,68 @@ goose run --recipe recipe.yaml --max-turns 10
 
 ---
 
-#### bench
-Used to evaluate system-configuration across a range of practical tasks. See the [detailed guide](/docs/tutorials/benchmarking) for more information.
+#### run [options]
+Execute commands from an instruction file or stdin. Check out the [full guide](/docs/guides/running-tasks) for more info.
+
+**Input Options:**
+- **`-i, --instructions <FILE>`**: Path to instruction file containing commands. Use `-` for stdin
+- **`-t, --text <TEXT>`**: Input text to provide to goose directly
+- **`--system <TEXT>`**: Provide additional system instructions to customize the agent's behavior
+- **`--recipe <RECIPE_FILE_NAME> <OPTIONS>`**: Load a custom recipe in current session
+- **`--params <KEY=VALUE>`**: Key-value parameters to pass to the recipe file. Can be specified multiple times
+- **`--sub-recipe <RECIPE>`**: Specify sub-recipes to include alongside the main recipe. Can be specified multiple times
+
+**Session Options:**
+- **`-s, --interactive`**: Continue in interactive mode after processing initial input
+- **`-n, --name <name>`**: Name for this run session (e.g. `daily-tasks`)
+- **`-r, --resume`**: Resume from a previous run
+- **`-p, --path <PATH>`**: Path for this run session (e.g. `./playground.jsonl`). Used for legacy file-based session storage.
+- **`--no-session`**: Run goose commands without creating or storing a session file
+
+**Extension Options:**
+- **`--with-extension <COMMAND>`**: Add stdio extensions (can be used multiple times)
+- **`--streamable-http-extension <URL>`**: Add remote extensions over Streaming HTTP (can be used multiple times)
+- **`--with-builtin <name>`**: Add builtin extensions by name (e.g., 'developer' or multiple: 'developer,github')
+
+**Control Options:**
+- **`--debug`**: Output complete tool responses, detailed parameter values, and full file paths
+- **`--max-tool-repetitions <NUMBER>`**: Maximum number of times the same tool can be called consecutively with identical parameters. Helps prevent infinite loops
+- **`--max-turns <NUMBER>`**: Maximum number of turns allowed without user input (default: 1000)
+- **`--explain`**: Show a recipe's title, description, and parameters
+- **`--render-recipe`**: Print the rendered recipe instead of running it
+- **`-q, --quiet`**: Quiet mode. Suppress non-response output, printing only the model response to stdout
+- **`--output-format <FORMAT>`**: Output format (`text`, `json`, or `stream-json`). Default is `text`. Use `json` for automation and scripting
+- **`--provider`**: Specify the provider to use for this session (overrides environment variable)
+- **`--model`**: Specify the model to use for this session (overrides environment variable)
 
 **Usage:**
 ```bash
-goose bench ...etc.
+# Run from instruction file
+goose run --instructions plan.md
+
+# Load a recipe with a prompt that goose executes and then exits  
+goose run --recipe recipe.yaml
+
+# Load a recipe and stay in an interactive session
+goose run --recipe recipe.yaml --interactive
+
+# Load a recipe in debug mode
+goose run --recipe recipe.yaml --debug
+
+# Show recipe details
+goose run --recipe recipe.yaml --explain
+
+# Run a recipe with parameters
+goose run --recipe recipe.yaml --params environment=production --params region=us-west-2
+
+# Run instructions from a file without session storage
+goose run --no-session -i instructions.txt
+
+# Run with a specified provider and model
+goose run --provider anthropic --model claude-4-sonnet -t "initial prompt"
+
+# Run with limited turns before prompting user
+goose run --recipe recipe.yaml --max-turns 10
 ```
 
 ---
@@ -445,12 +513,14 @@ Run an enabled MCP server specified by `<name>` (e.g. `'Google Drive'`).
 **Usage:**
 ```bash
 goose mcp <name>
-```
 
 ---
 
-#### acp
+#### acp [OPTIONS]
 Run goose as an Agent Client Protocol (ACP) agent server over stdio. This enables goose to work with ACP-compatible clients like Zed.
+
+**Options:**
+- **`--with-builtin <VALUE>`**: Add built-in extensions by name
 
 ACP is an emerging protocol specification that standardizes communication between AI agents and client applications, making it easier for clients to integrate with various AI agents.
 
