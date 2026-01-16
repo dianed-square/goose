@@ -24,9 +24,10 @@ on:
         type: boolean
         default: true
       
-  # Uncomment to enable automatic triggering on releases
-  # release:
-  #   types: [published]
+  # Automatic triggering on releases
+  # Uses both published and edited to catch when release-action updates with artifacts
+  release:
+    types: [published, edited]
 
 permissions:
   contents: write       # Create branches and commit files
