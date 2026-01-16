@@ -25,9 +25,9 @@ on:
         default: true
       
   # Automatic triggering on releases
-  # Uses both published and edited to catch when release-action updates with artifacts
+  # Uses edited to catch when release-action updates the release with artifacts
   release:
-    types: [published, edited]
+    types: [edited]
 
 permissions:
   contents: write       # Create branches and commit files
