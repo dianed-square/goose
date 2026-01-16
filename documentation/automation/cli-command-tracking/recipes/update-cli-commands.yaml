@@ -22,12 +22,22 @@ instructions: |
   If an option was added: Simply add it to the docs (don't mention it's new)
   If an option was modified: Update it to show the current state (don't mention what it used to be)
   
+  ## 🚨 ABSOLUTE PROHIBITIONS - NEVER DO THESE
+  
+  1. **NEVER delete or replace entire command sections** (like `#### bench`, `#### run`, `#### session`) unless cli-changes.md explicitly says the command was removed
+  2. **NEVER change section headings** (like `### Task Execution`, `### Session Management`)
+  3. **NEVER rename options that aren't in the detected changes** (e.g., don't change `--with-streamable-http-extension` unless cli-changes.md says to)
+  4. **NEVER duplicate sections** - if a section exists, don't create another copy of it
+  5. **NEVER remove horizontal rules (`---`)** between sections
+  6. **NEVER rewrite examples extensively** - only update the specific flag/option that changed
+  
   ## ⚠️ CRITICAL RULES
   
   1. **Only Update What's Documented**: If a command, option, or section is NOT mentioned in cli-changes.md, DO NOT touch it
   2. **Preserve Structure**: Keep all existing headings, section organization, and formatting intact
   3. **Preserve Everything Else**: All other content, formatting, examples, and sections must remain exactly as-is
-  4. **Use Precise str_replace**: When editing:
+  4. **Surgical edits only**: Make the smallest possible change to achieve the goal
+  5. **Use Precise str_replace**: When editing:
      - Use old_str/new_str (NOT diff format)
      - Include enough context for unique matching
      - Verify your old_str matches EXACTLY what's in the file
@@ -202,11 +212,19 @@ prompt: |
   - If something was ADDED: Just add it to the docs. Don't mention it's new.
   - If something was MODIFIED: Update it to the current state. Don't mention what it used to be.
   
+  🚨 ABSOLUTE PROHIBITIONS:
+  - NEVER delete entire command sections (like #### bench, #### run) unless explicitly removed
+  - NEVER change section headings (### Task Execution, ### Session Management)
+  - NEVER rename options not mentioned in cli-changes.md
+  - NEVER duplicate existing sections
+  - NEVER remove --- horizontal rules between sections
+  
   CRITICAL INSTRUCTIONS:
   1. Only make changes that are explicitly documented in cli-changes.md
   2. Do NOT make general improvements, reorganizations, or clarifications
   3. Do NOT remove or change section headings (like "#### session")
   4. Use the EXACT file path from the CLI_COMMANDS_PATH environment variable when editing
+  5. Make SURGICAL edits - the smallest change needed
   
   For each change in cli-changes.md:
   - Command added? Add new section following existing format
