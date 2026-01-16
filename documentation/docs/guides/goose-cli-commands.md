@@ -54,6 +54,24 @@ Shows goose information, including the version, configuration file location, ses
 ```bash
 goose info
 ```
+### completion
+Generate the autocompletion script for the specified shell.
+
+**Options:**
+- **`--help`**: Provides help information for using command completion.
+
+**Usage:**
+```
+goose completion <SHELL>
+```
+
+**Examples:**
+```sh
+goose completion bash
+```
+
+---
+
 
 ---
 
@@ -95,7 +113,9 @@ Starting with version 1.10.0, goose uses a SQLite database (`sessions.db`) inste
 Your existing sessions are automatically imported to the database. Legacy `.jsonl` files remain on disk but are no longer managed by goose.
 :::
 
-#### session [options]
+---
+
+:::info Session Storage Migration
 Start or resume interactive chat sessions.
 
 **Basic Options:**
@@ -111,7 +131,10 @@ Start or resume interactive chat sessions.
 **Extension Options:**
 - **`--with-extension <command>`**: Add stdio extensions
 - **`--with-streamable-http-extension <url>`**: Add remote extensions over Streamable HTTP
-- **`--with-builtin <id>`**: Enable built-in extensions (e.g., 'developer', 'computercontroller')
+- **`--with-builtin <name>`**: Add builtin extensions by name, specified as comma-separated names
+
+**Removed Options:**
+- **`--with-remote-extension`**: Was used to add remote extensions via URL; replace as needed with built-in options.
 
 **Usage:**
 ```bash
@@ -124,23 +147,17 @@ goose session --resume --session-id 20251108_2
 goose session --resume --path ./session.json    # exported session
 goose session --resume --path ./session.jsonl   # legacy session storage
 
-# Start with extensions
-goose session --with-extension "npx -y @modelcontextprotocol/server-memory"
-goose session --with-builtin developer
-goose session --with-streamable-http-extension "http://localhost:8080/mcp"
-
-# Advanced: Mix multiple extension types
-goose session \
-  --with-extension "echo hello" \
-  --with-streamable-http-extension "http://localhost:8080/mcp" \
-  --with-builtin "developer"
-
 # Control session behavior
-goose session -n my-session --debug --max-turns 25
-```
+goose session -n my-session --debug --max-turns 15
 
+#### Remove Option
+
+**Removed Options:**
+- **`--with-remote-extension`**: Was used to add remote extensions via URL; replace as needed with built-in options.
 ---
 
+  --with-extension "echo hello" \
+  --with-streamable-http-extension "http://localhost:8080/mcp" \
 #### session list [options]
 List all saved sessions.
 
@@ -311,7 +328,7 @@ Execute commands from an instruction file or stdin. Check out the [full guide](/
 - **`--explain`**: Show a recipe's title, description, and parameters
 - **`--render-recipe`**: Print the rendered recipe instead of running it
 - **`-q, --quiet`**: Quiet mode. Suppress non-response output, printing only the model response to stdout
-- **`--output-format <FORMAT>`**: Output format (`text`, `json`, or `stream-json`). Default is `text`. Use JSON structured output for automation and scripting: `json` for results after completion, `stream-json` for events as they occur
+- **`--output-format <FORMAT>`**: Output format (`text`, `json`, `stream-json`). Default is `text`. Use JSON structured output for automation and scripting
 - **`--provider`**: Specify the provider to use for this session (overrides environment variable)
 - **`--model`**: Specify the model to use for this session (overrides environment variable)
 
