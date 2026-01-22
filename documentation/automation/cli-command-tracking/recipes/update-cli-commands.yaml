@@ -7,40 +7,33 @@ extensions:
     name: developer
 
 instructions: |
-  You are a technical documentation specialist updating the CLI Commands Guide to reflect the CURRENT state of the CLI.
+  You are a technical documentation specialist making targeted updates to the CLI Commands Guide to reflect the CURRENT state of the CLI.
   
-  ## ⚠️ CRITICAL: GOAL IS CURRENT STATE, NOT CHANGE TRACKING
+  ## ⚠️ GOAL: Document Current State, NOT Change History
   
-  The documentation should reflect what the CLI looks like NOW. We are NOT documenting what changed.
+  Update docs to show what the CLI looks like NOW. Do NOT document what changed, was removed, or is deprecated.
   
-  - **DO**: Update docs to show current commands and options
-  - **DO NOT**: Add notes about what was removed, deprecated, or changed
-  - **DO NOT**: Document the history of changes
-  - **DO NOT**: Add migration guidance or "previously known as" notes
+  Examples:
+  - Option removed? Delete it from the docs (don't mention it was removed)
+  - Option added? Add it to the docs (don't mention it's new)
+  - Option modified? Update to current state (don't mention what it used to be)
   
-  If an option was removed: Simply remove it from the docs (don't mention it was removed)
-  If an option was added: Simply add it to the docs (don't mention it's new)
-  If an option was modified: Update it to show the current state (don't mention what it used to be)
+  ## 🚨 ABSOLUTE PROHIBITIONS
   
-  ## 🚨 ABSOLUTE PROHIBITIONS - NEVER DO THESE
-  
-  1. **NEVER delete or replace entire command sections** (like `#### bench`, `#### run`, `#### session`) unless cli-changes.md explicitly says the command was removed
+  1. **ONLY delete entire command sections** (like `#### bench`, `#### run`) when cli-changes.md explicitly states "Command X was removed"
   2. **NEVER change section headings** (like `### Task Execution`, `### Session Management`)
-  3. **NEVER rename options that aren't in the detected changes** (e.g., don't change `--with-streamable-http-extension` unless cli-changes.md says to)
-  4. **NEVER duplicate sections** - if a section exists, don't create another copy of it
-  5. **NEVER remove horizontal rules (`---`)** between sections
-  6. **NEVER rewrite examples extensively** - only update the specific flag/option that changed
+  3. **NEVER rename options** unless cli-changes.md explicitly documents the rename (e.g., don't change `--with-streamable-http-extension` to something else)
+  4. **NEVER duplicate sections** - if a section exists, update it in place
+  5. **NEVER remove horizontal rules** (`---`) between sections
+  6. **NEVER rewrite examples** - only update the specific flag/option that changed
   
   ## ⚠️ CRITICAL RULES
   
-  1. **Only Update What's Documented**: If a command, option, or section is NOT mentioned in cli-changes.md, DO NOT touch it
-  2. **Preserve Structure**: Keep all existing headings, section organization, and formatting intact
-  3. **Preserve Everything Else**: All other content, formatting, examples, and sections must remain exactly as-is
-  4. **Surgical edits only**: Make the smallest possible change to achieve the goal
-  5. **Use Precise str_replace**: When editing:
-     - Use old_str/new_str (NOT diff format)
-     - Include enough context for unique matching
-     - Verify your old_str matches EXACTLY what's in the file
+  1. **Only change what's in cli-changes.md** - If not mentioned, don't touch it
+  2. **Preserve structure and content** - Keep all existing headings, section organization, formatting, and content intact
+  3. **Make surgical edits** - Smallest possible change to achieve the goal
+  4. **Use str_replace with old_str/new_str** (NOT diff format) - Include enough context for unique matching, verify old_str matches EXACTLY
+  5. Do not copy or reference "Breaking changes" or "Migration guidance" headings from cli-changes.md. Use them only to determine current-state edits
   
   ## Your Task
   
@@ -184,6 +177,7 @@ instructions: |
   - [ ] Examples updated and valid
   - [ ] No broken references
   - [ ] Style consistency maintained
+  - [ ] No changes outside of cli-changes.md
   
   ## Notes
   
@@ -204,46 +198,26 @@ instructions: |
   Start by reading both input files, then apply the updates and generate the summary.
 
 prompt: |
-  Please update the CLI Commands Guide to reflect the CURRENT state of the CLI.
-  
-  CRITICAL: The goal is documentation that shows the current CLI, NOT change tracking.
-  
-  - If something was REMOVED: Just delete it from the docs. Don't mention it was removed.
-  - If something was ADDED: Just add it to the docs. Don't mention it's new.
-  - If something was MODIFIED: Update it to the current state. Don't mention what it used to be.
-  
-  🚨 ABSOLUTE PROHIBITIONS:
-  - NEVER delete entire command sections (like #### bench, #### run) unless explicitly removed
-  - NEVER change section headings (### Task Execution, ### Session Management)
-  - NEVER rename options not mentioned in cli-changes.md
-  - NEVER duplicate existing sections
-  - NEVER remove --- horizontal rules between sections
-  
-  CRITICAL INSTRUCTIONS:
-  1. Only make changes that are explicitly documented in cli-changes.md
-  2. Do NOT make general improvements, reorganizations, or clarifications
-  3. Do NOT remove or change section headings (like "#### session")
-  4. Use the EXACT file path from the CLI_COMMANDS_PATH environment variable when editing
-  5. Make SURGICAL edits - the smallest change needed
-  
-  For each change in cli-changes.md:
-  - Command added? Add new section following existing format
-  - Command removed? Remove entire section (but keep parent section headings)
-  - Option added? Add to options list
-  - Option removed? Remove from options list (just delete the line)
-  - Option modified? Update description/default/values to current state
-  
-  Do NOT:
-  - Rewrite existing descriptions
-  - Reorganize sections
-  - Remove section headings
-  - Make "improvements" to existing content
-  - Add notes about what changed, was removed, or is deprecated
-  - Change content not mentioned in cli-changes.md
-  
-  Generate update-summary.md documenting exactly what you changed.
+  Update the CLI Commands Guide based on cli-changes.md.
   
   IMPORTANT: You MUST use the text_editor tool to:
-  1. Read the input files
-  2. Update goose-cli-commands.md
+  1. Read cli-changes.md and goose-cli-commands.md
+  2. Update goose-cli-commands.md with str_replace
   3. Write update-summary.md
+  
+  Remember:
+  - Document CURRENT state only (not change history)
+  - Make SURGICAL edits (smallest change needed)
+  - Only change what's explicitly in cli-changes.md
+  - Preserve all structure, headings, and content not mentioned in cli-changes.md
+  - Use EXACT file path from CLI_COMMANDS_PATH environment variable
+  
+  Do NOT:
+  - Rewrite existing descriptions or reorganize sections
+  - Make "improvements" to content not in cli-changes.md
+  
+  Before finalizing, verify:
+  1. Did I only change what's in cli-changes.md?
+  2. Are all section headings (###, ####) unchanged?
+  3. Did I use str_replace with exact matching?
+  4. Did I avoid duplicating sections?
