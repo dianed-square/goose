@@ -88,6 +88,26 @@ goose update --reconfigure
 
 ---
 
+#### completion
+Generate the autocompletion script for the specified shell.
+
+**Options:**
+- **`--bin-name <BIN_NAME>`**: Override the binary name in the generated script. Default is `goose`
+
+**Usage:**
+```bash
+# Bash (Linux)
+goose completion bash > /etc/bash_completion.d/goose
+
+# Zsh
+goose completion zsh > "${fpath[1]}/_goose"
+
+# Fish
+goose completion fish > ~/.config/fish/completions/goose.fish
+```
+
+---
+
 ### Session Management
 
 :::info Session Storage Migration
@@ -110,7 +130,6 @@ Start or resume interactive chat sessions.
 
 **Extension Options:**
 - **`--with-extension <command>`**: Add stdio extensions
-- **`--with-remote-extension <url>`**: Add remote extensions over SSE
 - **`--with-streamable-http-extension <url>`**: Add remote extensions over Streaming HTTP
 - **`--with-builtin <id>`**: Enable built-in extensions (e.g., 'developer', 'computercontroller')
 
@@ -128,12 +147,12 @@ goose session --resume -p ./session.jsonl   # legacy session storage
 # Start with extensions
 goose session --with-extension "npx -y @modelcontextprotocol/server-memory"
 goose session --with-builtin developer
-goose session --with-remote-extension "http://localhost:8080/sse"
+goose session --with-streamable-http-extension "http://localhost:8080/sse"
 
 # Advanced: Mix multiple extension types
 goose session \
   --with-extension "echo hello" \
-  --with-remote-extension "http://sse.example.com/sse" \
+  --with-streamable-http-extension "http://sse.example.com/sse" \
   --with-streamable-http-extension "http://http.example.com" \
   --with-builtin "developer"
 
@@ -303,8 +322,7 @@ Execute commands from an instruction file or stdin. Check out the [full guide](/
 
 **Extension Options:**
 - **`--with-extension <COMMAND>`**: Add stdio extensions (can be used multiple times)
-- **`--with-remote-extension <URL>`**: Add remote extensions over SSE (can be used multiple times)
-- **`--with-streamable-http-extension <URL>`**: Add remote extensions over Streaming HTTP (can be used multiple times)
+- **`--with-streamable-http-extension <URL>`**: Load remote extensions from a URL over Streaming HTTP (can be used multiple times)
 - **`--with-builtin <name>`**: Add builtin extensions by name (e.g., 'developer' or multiple: 'developer,github')
 
 **Control Options:**
@@ -314,7 +332,7 @@ Execute commands from an instruction file or stdin. Check out the [full guide](/
 - **`--explain`**: Show a recipe's title, description, and parameters
 - **`--render-recipe`**: Print the rendered recipe instead of running it
 - **`-q, --quiet`**: Quiet mode. Suppress non-response output, printing only the model response to stdout
-- **`--output-format <FORMAT>`**: Output format (`text` or `json`). Default is `text`. Use `json` for automation and scripting
+- **`--output-format <FORMAT>`**: Output format (`text`, `json`, or `stream-json`). Default is `text`. Use `json` for automation and scripting
 - **`--provider`**: Specify the provider to use for this session (overrides environment variable)
 - **`--model`**: Specify the model to use for this session (overrides environment variable)
 
@@ -456,8 +474,11 @@ ACP is an emerging protocol specification that standardizes communication betwee
 
 **Usage:**
 ```bash
-goose acp
+goose acp [OPTIONS]
 ```
+
+**Options:**
+- **`--with-builtin <NAME>`**: Add one or more builtin extensions bundled with goose (comma-separated names)
 
 :::info
 This command is automatically invoked by ACP-compatible clients and is not typically run directly by users. The client manages the lifecycle of the `goose acp` process. See [Using goose in ACP Clients](/docs/guides/acp-clients) for details.
